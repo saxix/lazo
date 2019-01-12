@@ -1,0 +1,4 @@
+.*
+lazo.egg-info
+dist
+!.gitignore
