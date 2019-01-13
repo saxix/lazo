@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 import ssl
-import re
-import sys
 import warnings
 from functools import partial
 from pprint import pformat
 
 import click
 import requests
-from requests.auth import HTTPBasicAuth
 from requests import exceptions
+from requests.auth import HTTPBasicAuth
 from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
@@ -51,9 +49,10 @@ class TargetParamType(click.ParamType):
         try:
             parts = value.split(":")
             assert len(parts) == 2
-        except:
+        except Exception:
             self.fail("Please indicate target in the form 'namespace:workload' ")
         return parts
+
 
 Target = TargetParamType()
 
@@ -66,9 +65,10 @@ class ImageParamType(click.ParamType):
                 image, tag = image.split(':')
             else:
                 tag = 'latest'
-        except:
+        except Exception:
             self.fail("Please indicate image in the form 'account/image' ")
         return account, image, tag
+
 
 Image = ImageParamType()
 
@@ -196,7 +196,6 @@ def upgrade(ctx, target, image, key, secret,
             pull_policy,
             stdin,
             verbosity, quit, insecure, repository, check_image, dry_run):
-
     error = partial(printer, 0, verbosity, 'red')
     log = partial(printer, 1, verbosity, 'white')
     info = partial(printer, 2, verbosity, 'white')
@@ -231,11 +230,11 @@ def upgrade(ctx, target, image, key, secret,
         try:
             key, secret = credentials[:-1].split(":")
         except ValueError:
-            ctx.fail("Invalid credential using stdin. Use format 'key:secret' ")
+            ctx.fail("Invalid credential using stdin. Use format 'key:secret'")
 
     auth = HTTPBasicAuth(key, secret)
 
-    namespace,workload = target
+    namespace, workload = target
     url = f'{base_url}project/{cluster}:{project}/workloads/deployment:{namespace}:{workload}'
     info(f"Authenticating as '{key}'")
 
@@ -265,7 +264,7 @@ def upgrade(ctx, target, image, key, secret,
                 pod['imagePullPolicy'] = pull_policy
             info(f"Found {len(json['containers'])} pod(s)")
             info(f"Existing tags are: {','.join(found)}")
-        except Exception as e:
+        except Exception:
             error("Unexpectd response", color=True)
             error(json)
             ctx.exit(1)
