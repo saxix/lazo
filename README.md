@@ -1,4 +1,4 @@
-##Lazo
+## Lazo
 
 [![PyPI version](https://badge.fury.io/py/lazo.svg)](https://badge.fury.io/py/lazo)
 
