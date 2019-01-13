@@ -1,9 +1,20 @@
-Lazo
-----
+##Lazo
+
+[![PyPI version](https://badge.fury.io/py/lazo.svg)](https://badge.fury.io/py/lazo)
 
 Small utility to upgrade Rancher images. It has been developd to be used in CI environments.
 
+### Install
+
+
+    $ pip install lazo
     
+or using [pipsi](https://pypi.org/project/pipsi/) 
+
+    $ pipsi install lazo
+    
+### Help        
+        
     $ lazo --help
     Usage: lazo [OPTIONS] COMMAND [ARGS]...
     
