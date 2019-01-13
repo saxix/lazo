@@ -15,17 +15,17 @@ or using [pipsi](https://pypi.org/project/pipsi/)
     
 ### Help        
         
-    $ lazo --help
     Usage: lazo [OPTIONS] COMMAND [ARGS]...
     
       lazo aims to help deployment on new version of Rancher workloads.
     
     Options:
+      --version                       Show the version and exit.
       -v, --verbosity                 verbosity level
       -q, --quit                      no output
       -k, --key KEY                   Rancher API Key (username)
       -s, --secret SECRET             Rancher API secret (password)
-      --sstdin                  
+      --stdin                         Read credentials from stdin
       -r, --repository URL            Docker repository
       --check-image / --no-check-image
                                       Do not check Docker repository
@@ -36,10 +36,12 @@ or using [pipsi](https://pypi.org/project/pipsi/)
       -d, --dry-run                   dry-run mode
       --pull [IfNotPresent|Always|Never]
                                       Rancher ImagePullPolicy
-      --help                          Show this message and exit.
+      --name TEXT                     Workload new name
+      -h, --help                      Show this message and exit.
     
     Commands:
-      upgrade
+      upgrade      
+      
       
 ### Environment varialbles      
 
