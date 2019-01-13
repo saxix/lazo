@@ -63,10 +63,11 @@ Use environment variables
 
     $ export RANCHER_KEY=key
     $ export RANCHER_SECRET=secret
-    $ lazo upgrade cluster1:worload1 saxix/devpi:latest \
-           --base-url https://rancher.example.com/v3/
-           --cluster c-wwk6v
-           --project p-xd4dg
+    $ export RANCHER_CLUSTER=c-wwk6v
+    $ export RANCHER_PROJECT=p-xd4dg
+    $ export RANCHER_ENDPOINT=https://rancher.example.com/v3/
+    $
+    $ lazo upgrade namespace:worload1 saxix/devpi:latest \
 
 Use stdin to read credentials
 

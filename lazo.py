@@ -12,6 +12,10 @@ from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
+__version__ = '1.2'
+
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
 
 def printer(level, verbosity, color, msg):
     if verbosity > level:
@@ -180,7 +184,8 @@ def global_options(func):
     return func
 
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(__version__)
 @global_options
 @click.pass_context
 def cli(ctx, *args, **kwargs):
@@ -190,7 +195,7 @@ def cli(ctx, *args, **kwargs):
 
 @cli.command()
 @global_options
-@click.argument('target', type=Target)
+@click.argument('target', type=Target, envvar='HOME')
 @click.argument('image', type=Image)
 @click.pass_context
 def upgrade(ctx, target, image, key, secret,
