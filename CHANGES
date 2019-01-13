@@ -1,0 +1,14 @@
+1.2
+---
+* add `--name` to change workload name
+
+1.1
+---
+* add ability to check image before updating Rancher
+* add `--stdin` param
+* add `--pull` param to manage ImagePullPolicy rancher param
+
+
+1.0
+---
+* First release

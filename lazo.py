@@ -169,6 +169,8 @@ _global_options = [
                  type=IChoice(['IfNotPresent', 'Always', 'Never'], False),
                  default='Always',
                  help='Rancher ImagePullPolicy'),
+    click.option('--name',
+                 help='Workload new name'),
 ]
 
 
@@ -195,6 +197,7 @@ def upgrade(ctx, target, image, key, secret,
             base_url, cluster, project,
             pull_policy,
             stdin,
+            name,
             verbosity, quit, insecure, repository, check_image, dry_run):
     error = partial(printer, 0, verbosity, 'red')
     log = partial(printer, 1, verbosity, 'white')
@@ -262,6 +265,8 @@ def upgrade(ctx, target, image, key, secret,
                 found.add(pod['image'])
                 pod['image'] = image_full_name
                 pod['imagePullPolicy'] = pull_policy
+                if name:
+                    pod['name'] = name
             info(f"Found {len(json['containers'])} pod(s)")
             info(f"Existing tags are: {','.join(found)}")
         except Exception:
