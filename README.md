@@ -62,7 +62,7 @@ or using [pipsi](https://pypi.org/project/pipsi/)
 Use environment variables
 
     $ export RANCHER_KEY=key
-    $ export RANCHER_PASSWORD=secret
+    $ export RANCHER_SECRET=secret
     $ lazo upgrade cluster1:worload1 saxix/devpi:latest \
            --base-url https://rancher.example.com/v3/
            --cluster c-wwk6v
