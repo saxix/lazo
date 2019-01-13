@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import ast
 import codecs
-import os
-import re
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 setup(name='lazo',
       version='1.1',
       description="""small utility to iteract with Rancher API""",
+      long_description=codecs.open('README.md').read(),
       author='Stefano Apostolico',
       author_email='s.apostolico@gmail.com',
       url='https://github.com/saxix/lazo',
