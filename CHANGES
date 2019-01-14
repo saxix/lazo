@@ -1,6 +1,8 @@
 1.2
 ---
 * add `--name` to change workload name
+* validate Rancher base url
+
 
 1.1
 ---
