@@ -13,7 +13,7 @@ from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 

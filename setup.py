@@ -28,7 +28,7 @@ setup(name='lazo',
       py_modules=['lazo'],
       install_requires=['click==7.0',
                         'colorama==0.4.1',
-                        'requests===2.21.0'],
+                        'requests==2.21.0'],
       entry_points={
           'console_scripts': [
               'lazo = lazo:cli',
