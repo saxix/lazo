@@ -3,6 +3,7 @@ import ssl
 import warnings
 from functools import partial
 from pprint import pformat
+from urllib.parse import urlparse
 
 import click
 import requests
@@ -12,10 +13,30 @@ from urllib3.exceptions import InsecureRequestWarning, MaxRetryError
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
+__version__ = '1.2'
+
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
 
 def printer(level, verbosity, color, msg):
     if verbosity > level:
         click.echo(click.style(str(msg), fg=color))
+
+
+class UrlParamType(click.ParamType):
+    def convert(self, value, param, ctx):
+        try:
+            o = urlparse(value)
+            assert o.path.endswith('/')
+        except AssertionError:
+            self.fail(f"Rancher url must ends with '/'")
+        except Exception:
+            self.fail(f"Invalid url. Should be something like 'https://rancher.example.com:9000/v3/'")
+
+        return value
+
+
+Url = UrlParamType()
 
 
 class VerbosityParamType(click.ParamType):
@@ -142,6 +163,7 @@ _global_options = [
                  help='Do not check Docker repository'),
     click.option('-b',
                  '--base-url',
+                 type=Url(),
                  envvar='RANCHER_ENDPOINT',
                  help='Rancher base url',
                  metavar='URL'),
@@ -169,6 +191,8 @@ _global_options = [
                  type=IChoice(['IfNotPresent', 'Always', 'Never'], False),
                  default='Always',
                  help='Rancher ImagePullPolicy'),
+    click.option('--name',
+                 help='Workload new name'),
 ]
 
 
@@ -178,7 +202,8 @@ def global_options(func):
     return func
 
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(__version__)
 @global_options
 @click.pass_context
 def cli(ctx, *args, **kwargs):
@@ -188,13 +213,14 @@ def cli(ctx, *args, **kwargs):
 
 @cli.command()
 @global_options
-@click.argument('target', type=Target)
+@click.argument('target', type=Target, envvar='HOME')
 @click.argument('image', type=Image)
 @click.pass_context
 def upgrade(ctx, target, image, key, secret,
             base_url, cluster, project,
             pull_policy,
             stdin,
+            name,
             verbosity, quit, insecure, repository, check_image, dry_run):
     error = partial(printer, 0, verbosity, 'red')
     log = partial(printer, 1, verbosity, 'white')
@@ -262,11 +288,13 @@ def upgrade(ctx, target, image, key, secret,
                 found.add(pod['image'])
                 pod['image'] = image_full_name
                 pod['imagePullPolicy'] = pull_policy
+                if name:
+                    pod['name'] = name
             info(f"Found {len(json['containers'])} pod(s)")
             info(f"Existing tags are: {','.join(found)}")
         except Exception:
-            error("Unexpectd response", color=True)
-            error(json)
+            error("ERROR: Unexpectd response")
+            error(pformat(json))
             ctx.exit(1)
 
         log(f"Updating all pod(s) to {image_full_name}")

@@ -2,3 +2,5 @@
 lazo.egg-info
 dist
 !.gitignore
+Pipfile
+Pipfile.lock
