@@ -210,7 +210,7 @@ def global_options(func):
     return func
 
 
-def get_target(ctx, repository, base, verbosity):
+def get_target(ctx, repository, base, verbosity, ignore_tag=False):
     error = partial(printer, 0, verbosity, 'red')
     success = partial(printer, 0, verbosity, 'green')
 
@@ -218,7 +218,7 @@ def get_target(ctx, repository, base, verbosity):
     if docker_image:
         tags = get_available_tags(repository, account, docker_image)
         if tags:
-            if docker_tag not in tags:
+            if ignore_tag or docker_tag not in tags:
                 success(f"Available tags are: {', '.join(tags)}")
                 ctx.exit(1)
             else:
@@ -248,10 +248,10 @@ def cli(ctx, *args, **kwargs):
 
 @cli.command()
 @global_options
-@click.argument('image', type=Image)
+@click.argument('image', type=Image, envvar='DOCKER_IMAGE')
 @click.pass_context
 def list(ctx, image, verbosity, quit, repository, **kwargs):
-    get_target(ctx, repository, image, verbosity)
+    get_target(ctx, repository, image, verbosity, ignore_tag=True)
 
 
 
