@@ -1,6 +1,12 @@
+1.3
+---
+* add subcommand 'list'
+
+
 1.2.2
 -----
 * fixes packaging
+
 
 1.2
 ---

@@ -80,14 +80,22 @@ Target = TargetParamType()
 
 class ImageParamType(click.ParamType):
     def convert(self, value, param, ctx):
+        image = None
+        tag = None
         try:
-            account, image = value.split("/")
-            if ':' in image:
-                image, tag = image.split(':')
+            if '/' in value:
+                account, image = value.split("/")
+                if ':' in image:
+                    image, tag = image.split(':')
+                else:
+                    tag = 'latest'
             else:
-                tag = 'latest'
+                if ':' in value:
+                    raise Exception()
+                else:
+                    account = value
         except Exception:
-            self.fail("Please indicate image in the form 'account/image' ")
+            self.fail("Please indicate image in the form 'account[/image[:tag]]' ")
         return account, image, tag
 
 
@@ -163,7 +171,7 @@ _global_options = [
                  help='Do not check Docker repository'),
     click.option('-b',
                  '--base-url',
-                 type=Url(),
+                 type=Url,
                  envvar='RANCHER_ENDPOINT',
                  help='Rancher base url',
                  metavar='URL'),
@@ -202,6 +210,30 @@ def global_options(func):
     return func
 
 
+def get_target(ctx, repository, base, verbosity):
+    error = partial(printer, 0, verbosity, 'red')
+    success = partial(printer, 0, verbosity, 'green')
+
+    account, docker_image, docker_tag = base
+    if docker_image:
+        tags = get_available_tags(repository, account, docker_image)
+        if tags:
+            success(f"Available tags are: {', '.join(tags)}")
+            ctx.exit(1)
+        else:
+            error("No tags found. Get available images")
+            error(f"Image '{docker_image}' not found on {repository}")
+
+    images = get_available_images(repository, account)
+    if images:
+        success(f"Available images are: {', '.join(images)}")
+        ctx.exit(1)
+    else:
+        error(f"No images found for account '{account}'")
+
+    return account, docker_image, docker_tag
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(__version__)
 @global_options
@@ -209,6 +241,15 @@ def global_options(func):
 def cli(ctx, *args, **kwargs):
     """ lazo aims to help deployment on new version of Rancher workloads."""
     ctx.obj = kwargs
+
+
+@cli.command()
+@global_options
+@click.argument('image', type=Image)
+@click.pass_context
+def list(ctx, image, verbosity, quit, repository, **kwargs):
+    get_target(ctx, repository, image, verbosity)
+
 
 
 @cli.command()
@@ -229,27 +270,7 @@ def upgrade(ctx, target, image, key, secret,
     account, docker_image, docker_tag = image
     image_full_name = f"{account}/{docker_image}:{docker_tag}"
     if check_image:
-        log("Checking image on docker hub")
-        if not tag_exists(repository, account, docker_image, docker_tag):
-            tags = get_available_tags(repository, account, docker_image)
-            if tags:
-                error(f"Tag '{docker_tag}' not found on {repository}")
-                error(f"Available tags are: {', '.join(tags)}")
-                ctx.exit(1)
-            else:
-                log("No tags found. Get available images")
-                images = get_available_images(repository, account)
-                if images:
-                    error(f"Image '{docker_image}' not found on {repository}")
-                    error(f"Available images are: {', '.join(images)}")
-                    ctx.exit(1)
-                else:
-                    error(f"No images found for account '{account}'")
-
-            error(f"Cannot retrieve image {image_full_name}")
-            ctx.exit()
-        else:
-            info(f"Image found on {repository}")
+        get_target(ctx, repository, image, verbosity)
 
     if stdin or ctx.obj.get('stdin'):
         credentials = click.get_text_stream('stdin').read()
