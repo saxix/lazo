@@ -149,12 +149,12 @@ _global_options = [
     click.option('-k',
                  '--key',
                  envvar='RANCHER_KEY',
-                 help='Rancher API Key (username)',
+                 help='Rancher API Key (username) [RANCHER_KEY]',
                  metavar='KEY'),
     click.option('-s',
                  '--secret',
                  envvar='RANCHER_SECRET',
-                 help='Rancher API secret (password)',
+                 help='Rancher API secret (password) [RANCHER_SECRET]',
                  metavar='SECRET'),
     click.option('--stdin',
                  is_flag=True,
@@ -164,7 +164,7 @@ _global_options = [
                  default='https://hub.docker.com',
                  envvar='DOCKER_REPOSITORY',
                  metavar='URL',
-                 help='Docker repository'),
+                 help='Docker repository [DOCKER_REPOSITORY]'),
     click.option('--check-image/--no-check-image',
                  is_flag=True,
                  default=True,
@@ -178,19 +178,19 @@ _global_options = [
     click.option('-c',
                  '--cluster',
                  envvar='RANCHER_CLUSTER',
-                 help='Rancher cluster key',
+                 help='Rancher cluster key [RANCHER_CLUSTER]',
                  metavar='TEXT'),
     click.option('-p',
                  '--project',
                  required=True,
                  envvar='RANCHER_PROJECT',
-                 help='Rancher project key',
+                 help='Rancher project key [RANCHER_PROJECT]',
                  metavar='TEXT'),
     click.option('-i',
                  '--insecure',
                  is_flag=True,
                  envvar='RANCHER_INSECURE',
-                 help='Ignore verifying the SSL certificate '),
+                 help='Ignore verifying the SSL certificate [RANCHER_INSECURE]'),
     click.option('-d',
                  '--dry-run',
                  is_flag=True,
@@ -218,8 +218,11 @@ def get_target(ctx, repository, base, verbosity):
     if docker_image:
         tags = get_available_tags(repository, account, docker_image)
         if tags:
-            success(f"Available tags are: {', '.join(tags)}")
-            ctx.exit(1)
+            if docker_tag not in tags:
+                success(f"Available tags are: {', '.join(tags)}")
+                ctx.exit(1)
+            else:
+                return account, docker_image, docker_tag
         else:
             error("No tags found. Get available images")
             error(f"Image '{docker_image}' not found on {repository}")
@@ -254,8 +257,8 @@ def list(ctx, image, verbosity, quit, repository, **kwargs):
 
 @cli.command()
 @global_options
-@click.argument('target', type=Target, envvar='HOME')
-@click.argument('image', type=Image)
+@click.argument('target', type=Target, envvar='RANCHER_TARGET')
+@click.argument('image', type=Image, envvar='DOCKER_IMAGE')
 @click.pass_context
 def upgrade(ctx, target, image, key, secret,
             base_url, cluster, project,
@@ -267,7 +270,9 @@ def upgrade(ctx, target, image, key, secret,
     log = partial(printer, 1, verbosity, 'white')
     info = partial(printer, 2, verbosity, 'white')
     success = partial(printer, 0, verbosity, 'green')
+
     account, docker_image, docker_tag = image
+
     image_full_name = f"{account}/{docker_image}:{docker_tag}"
     if check_image:
         get_target(ctx, repository, image, verbosity)
@@ -329,7 +334,7 @@ def upgrade(ctx, target, image, key, secret,
                 error(pformat(response.json()))
                 ctx.exit(1)
         else:
-            info(f"'--dry-run' used. Exiting without real update")
+            success(f"'--dry-run' used. Exiting without real update")
 
     except exceptions.InvalidSchema:
         error(f"Invalid rancher url '{base_url}'")
