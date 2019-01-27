@@ -77,3 +77,8 @@ Use stdin to read credentials
                             upgrade bitcaster:bitcaster \
                             bitcaster/bitcaster:0.3.0a10 \
                             --insecure
+
+Examples:
+--------
+   
+    $ echo "aaaa:`pass docker/saxix`" | lazo docker --stdin

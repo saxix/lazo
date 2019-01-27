@@ -5,12 +5,10 @@ import codecs
 import os
 import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__)))
-script = os.path.join(ROOT, 'lazo.py')
-
-rel = lambda *args: os.path.join(ROOT, 'src', 'requirements', *args)
+script = os.path.join(ROOT, 'src', 'lazo', '__init__.py')
 
 with open(script, 'rb') as f:
     content = f.read().decode('utf-8')
@@ -25,13 +23,14 @@ setup(name='lazo',
       author='Stefano Apostolico',
       author_email='s.apostolico@gmail.com',
       url='https://github.com/saxix/lazo',
-      py_modules=['lazo'],
+      package_dir={'': 'src'},
+      packages=find_packages('src'),
       install_requires=['click==7.0',
                         'colorama==0.4.1',
                         'requests==2.21.0'],
       entry_points={
           'console_scripts': [
-              'lazo = lazo:cli',
+              'lazo = lazo.__cli__:cli',
           ],
       },
       license='MIT',
