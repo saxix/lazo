@@ -15,42 +15,45 @@ or using [pipsi](https://pypi.org/project/pipsi/)
     
 ### Help        
         
+    $ lazo --help
     Usage: lazo [OPTIONS] COMMAND [ARGS]...
     
-      lazo aims to help deployment on new version of Rancher workloads.
-    
     Options:
-      --version                       Show the version and exit.
-      -v, --verbosity                 verbosity level
-      -q, --quit                      no output
-      -k, --key KEY                   Rancher API Key (username)
-      -s, --secret SECRET             Rancher API secret (password)
-      --stdin                         Read credentials from stdin
-      -r, --repository URL            Docker repository
-      --check-image / --no-check-image
-                                      Do not check Docker repository
-      -b, --base-url URL              Rancher base url
-      -c, --cluster TEXT              Rancher cluster key
-      -p, --project TEXT              Rancher project key  [required]
-      -i, --insecure                  Ignore verifying the SSL certificate
-      -d, --dry-run                   dry-run mode
-      --pull [IfNotPresent|Always|Never]
-                                      Rancher ImagePullPolicy
-      --name TEXT                     Workload new name
-      -h, --help                      Show this message and exit.
+      --version        Show the version and exit.
+      --env
+      -v, --verbosity  verbosity level
+      -q, --quit       no output
+      -d, --dry-run    dry-run mode
+      --debug          debug mode
+      -h, --help       Show this message and exit.
     
     Commands:
-      upgrade      
-      
-      
+      docker
+      rancher    
+
+
 ### Environment varialbles      
 
-- RANCHER_ENDPOINT as `--base-url`
+- RANCHER_BASE_URL as `--base-url`
 - RANCHER_KEY as `--key`
 - RANCHER_SECRET as `--secret`
 - RANCHER_CLUSTER as `--cluster`
 - RANCHER_PROJECT as `--project`
+- RANCHER_INSECURE as `--inxecure`
+- DOCKER_REPOSITORY as `--repository`
 
+You can inspect your default configuration with:
+
+    $ lazo --env
+    Env                  Value                          Default                        Env value
+    DOCKER_REPOSITORY    https://hub.docker.com/v2      https://hub.docker.com/v2
+    RANCHER_AUTH         <SET>                                                         <SET>
+    RANCHER_BASE_URL     https://r.example.com/v3                                      https://r.example.com/v3
+    RANCHER_CLUSTER      cluster1                                                      cluster1
+    RANCHER_INSECURE     False                          False
+    RANCHER_PROJECT      bitcaster                                                     bitcaster
+    RANCHER_USE_NAMES    False                          False
+    RANCHER_WORKLOAD          
       
 ### Examples
 
@@ -81,4 +84,23 @@ Use stdin to read credentials
 Examples:
 --------
    
-    $ echo "aaaa:`pass docker/saxix`" | lazo docker --stdin
+    $ lazo rancher -i -n info -p cluster1:bitcaster -w bitcaster:bitcaster
+    Workload infos:
+        Image: bitcaster/bitcaster:0.3.0a15
+        Command: ['stack']
+        imagePullPolicy: Always    
+
+    $ lazo docker info saxix/devpi
+    latest
+    2.3
+    2.2
+    2.1
+    2.0
+    1.1
+
+
+    $ lazo docker info library/python --filter '3\.6.*alpine3.8' --size
+    3.6-alpine3.8                  26.2MiB
+    3.6.8-alpine3.8                26.2MiB
+    3.6.7-alpine3.8                26.2MiB
+    3.6.6-alpine3.8                26.2MiB

@@ -1,4 +1,3 @@
-import re
 from urllib.parse import urlparse
 
 import click
@@ -6,6 +5,7 @@ from click.types import BoolParamType
 from requests.auth import HTTPBasicAuth
 
 from lazo.exceptions import ExBadParameter
+from lazo.objects import DockerImage, RancherWorkload
 
 
 class ExParamType(click.ParamType):
@@ -84,14 +84,10 @@ Target = TargetParamType()
 class WorkloadParamType(ExParamType):
     def convert(self, value, param, ctx):
         try:
-            parts = value.split(":")
-            if len(parts) == 2:
-                parts.insert(0, 'deployment')
-            assert len(parts) == 3
+            return RancherWorkload(value)
         except Exception:
             self.rfail(f"Invalid value '{value}' for TARGET. "
                        f"Please indicate target in the form '[deployment:]namespace:workload' ")
-        return parts
 
 
 Workload = WorkloadParamType()
@@ -99,9 +95,11 @@ Workload = WorkloadParamType()
 
 class ProjectParamType(ExParamType):
     def convert(self, value, param, ctx):
+        parts = [None, value]
         try:
-            parts = value.split(":")
-            assert len(parts) == 2
+            if ':' in value:
+                parts = value.split(":")
+                assert len(parts) == 2
         except Exception:
             self.rfail(
                 f"Invalid value '{value}' for PROJECT. Please indicate project in the form 'clusterId:projectID' ")
@@ -122,24 +120,6 @@ class AuthParamType(ExParamType):
 
 
 Auth = AuthParamType()
-
-
-class DockerImage:
-    def __init__(self, value, partial=False):
-        rex = re.compile(r"(?P<account>\w*)/?(?P<image>\w*):?(?P<tag>[\w\.-]*)")
-        m = rex.match(value)
-        self.account, self.image, self.tag = m.groups()
-        if self.tag and not self.image:
-            raise Exception("Tag needs and image")
-        if self.tag:
-            self.id = f"{self.account}/{self.image}:{self.tag}"
-        elif self.image:
-            self.id = f"{self.account}/{self.image}"
-        else:
-            self.id = self.account
-
-    def __repr__(self):
-        return self.id
 
 
 class ImageParamType(ExParamType):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+    #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import ast
 import codecs
@@ -15,6 +15,10 @@ with open(script, 'rb') as f:
     _version_re = re.compile(r'__version__\s+=\s+(.*)')
     version = str(ast.literal_eval(_version_re.search(content).group(1)))
 
+test_requires = ['pytest',
+                 'pytest-cov',
+                 'vcrpy'
+                 ]
 setup(name='lazo',
       version=version,
       description="""small utility to iteract with Rancher API""",
@@ -27,7 +31,14 @@ setup(name='lazo',
       packages=find_packages('src'),
       install_requires=['click==7.0',
                         'colorama==0.4.1',
-                        'requests==2.21.0'],
+                        'pygments',
+                        'requests==2.21.0',
+                        'websocket-client',
+                        ],
+      test_requires=test_requires,
+      extras_require={
+          'test': test_requires,
+      },
       entry_points={
           'console_scripts': [
               'lazo = lazo.__cli__:cli',

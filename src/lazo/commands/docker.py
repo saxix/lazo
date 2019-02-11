@@ -2,14 +2,13 @@ import sys
 
 import click
 
-from lazo.clients import DockerClient, handle_http_error
-from lazo.exceptions import HttpError
-from lazo.out import echo, error, success
-from lazo.params import _docker_options, _global_options, options
-from lazo.types import Image
-from lazo.utils import jprint
-
 from ..__cli__ import cli
+from ..clients import DockerClient, handle_http_error
+from ..exceptions import HttpError
+from ..out import echo, error, success
+from ..params import _docker_options, _global_options, make_option, options
+from ..types import Image
+from ..utils import jprint, sizeof
 
 
 @cli.group()
@@ -26,17 +25,22 @@ def docker(ctx, repository, username, password, stdin, **kwargs):
 @docker.command()
 @options(_global_options)
 @click.argument("image", type=Image, metavar='IMAGE')
+@click.option("--filter", metavar='REGEX', default='.*')
+@click.option("--size", is_flag=True)
 @click.pass_context
-def info(ctx, image, **kwargs):
+def info(ctx, image, filter, size, **kwargs):
     client = ctx.obj['client']
     try:
         if image.tag:
             response = client.get(f'/repositories/{image.account}/{image.image}/tags/{image.tag}/')
             jprint(response)
         elif image.image:
-            response = client.get(f'/repositories/{image.account}/{image.image}/tags/')
-            for e in response['results']:
-                echo(e['name'])
+            for tag in client.get_tags(image, filter):
+                if size:
+                    echo(f"{tag['name']:<30} {sizeof(tag['full_size'])}")
+                else:
+                    echo(tag['name'])
+
         elif image.account:
             response = client.get(f'/repositories/{image.account}/')
             for e in response['results']:
@@ -57,7 +61,7 @@ def ping(ctx, **kwargs):
 @docker.command()
 @options(_global_options)
 @click.argument("image", type=Image, metavar='IMAGE')
-@click.option("--no-input", is_flag=True)
+@make_option("--no-input", is_flag=True)
 @click.pass_context
 @handle_http_error
 def rm(ctx, image, no_input, **kwargs):
@@ -65,13 +69,13 @@ def rm(ctx, image, no_input, **kwargs):
     if image.tag:
         if client.exists(image):
             msg = """THIS IS A UNRECOVERABLE ACTION.
-            
-Continuing will irremediably remove image '%s' from the server.  
+
+Continuing will irremediably remove image '%s' from the server.
 Be sure to have a local copy.
 
 Do you want to continue? """
 
-            if no_input or click.confirm(msg % image.id ):
+            if no_input or click.confirm(msg % image.id):
                 token = client.login()
                 response = client.delete(f'/repositories/{image.account}/{image.image}/tags/{image.tag}/',
                                          raw=True,

@@ -1,18 +1,56 @@
-import sys
+import re
+import ssl
+import time
 from functools import wraps
 from json import JSONDecodeError
+from urllib.parse import urlparse
 
+import _thread
+import websocket
 from requests import request
+from requests.exceptions import SSLError
 
-from lazo.exceptions import ConnectionError, HttpError, InvalidCredentials, Http404, InvalidName
-from lazo.out import error, echo
-from lazo.utils import jprint
+from lazo.objects import RancherPod
+from lazo.types import RancherWorkload
+
+from .exceptions import (HttpError, InvalidCredentials, InvalidName,
+                         ObjectNotFound, ServerConnectionError, ServerSSLError,)
+from .out import echo, error, fail
+from .utils import jprint
 
 success_codes = (200, 201, 204)
 
 
+def on_message(ws, message):
+    print(111, message)
+
+
+def on_error(ws, error):
+    print(222, error)
+
+
+def on_close(ws):
+    print(333, "### closed ###")
+
+
+def on_open(ws):
+    def run(*args):
+        time.sleep(1)
+        ws.close()
+        print("thread terminating...")
+
+    _thread.start_new_thread(run, ())
+
+
 class HttpClient:
     def __init__(self, base_url, *, verify=True, debug=False, auth=None, **kwargs):
+        o = urlparse(base_url)
+        self.scheme = o.scheme or 'http'
+        self.port = o.port or 80
+        self.scheme = o.scheme
+        self.host = o.hostname
+        self.path = o.path
+
         self.base_url = base_url
         self.verify = verify
         self.debug = debug
@@ -24,14 +62,18 @@ class HttpClient:
         return self.history[-1].status_code == 200
 
     def _r(self, cmd, url, *, raw=False, ignore_error=False, **kwargs):
-        url = f"{self.base_url}{url}"
+        if not (url.startswith('http') or url.startswith('wss')):
+            url = f"{self.base_url}{url}"
         try:
             if self.debug:
                 echo(f"{cmd} {url}")
             response = request(cmd, url, auth=self.auth, verify=self.verify, **kwargs)
+        except SSLError:
+            raise ServerSSLError(url)
         except Exception as e:
-            raise ConnectionError(url, e)
+            raise ServerConnectionError(url, e)
         self.history.append(response)
+
         if response.status_code in success_codes:
             if raw:
                 return response
@@ -54,50 +96,141 @@ class HttpClient:
     def delete(self, url, **kwargs):
         return self._r('delete', url, **kwargs)
 
-    def put(self, url, data, **kwargs):
-        return self._r('delete', url, json=data, **kwargs)
+    def put(self, url, *, data, **kwargs):
+        return self._r('put', url, json=data, **kwargs)
 
-        # response = requests.put(url, json=data, auth=self.auth, verify=self.verify)
-        # self.history.append(response)
-        # return response.json()
+    def ws(self, where):
+        scheme = 'ws' if self.scheme == 'http' else 'wss'
+        base = f'{scheme}://{self.host}:{self.port}'
+        url = f"{base}{where}"
+        if self.debug:
+            echo(f"WS {url}")
+        from base64 import b64encode
+        userAndPass = b64encode(f"{self.auth.username}:{self.auth.password}".encode('utf8')).decode("ascii")
+        headers = {'Authorization': 'Basic %s' % userAndPass}
+        ws = websocket.create_connection(url,
+                                         sslopt={"cert_reqs": ssl.CERT_NONE},
+                                         header=headers)
+        assert ws.connected
+        data = []
+        while ws.connected:
+            rec = ws.recv()
+            if rec != b'\x01':
+                if isinstance(rec, str):
+                    data.append(rec[1:])
+                else:
+                    data.append(rec[1:].decode('utf8'))
+
+        if not data:
+            raise Exception('No response')
+
+        return "".join(data)
 
 
 class RancherClient(HttpClient):
     def __init__(self, base_url, **kwargs):
+        self.use_names = kwargs.pop('use_names', False)
         super().__init__(base_url, **kwargs)
+        self._cluster = None
+        self._project = None
 
     def __repr__(self):
         return f"<RancherClient {self.base_url}>"
 
-    def get_cluster_id_by_name(self, name):
+    @property
+    def cluster(self):
+        return self._cluster
+
+    @cluster.setter
+    def cluster(self, cluster_id):
+        if self.use_names:
+            cluster_id = self._get_cluster_id_by_name(cluster_id)
+        self._cluster = cluster_id
+
+    @property
+    def project(self):
+        return self._project
+
+    @project.setter
+    def project(self, name_or_id):
+        if isinstance(name_or_id, (list, tuple)):
+            if name_or_id[0]:
+                self._cluster = name_or_id[0]
+            name = name_or_id[1]
+        else:
+            name = name_or_id
+
+        if self.use_names:
+            name = self._get_project_id_by_name(name)
+        self._project = name
+
+    # pods
+    def list_pods(self):
+        url = f'/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name'
+        res = self.get(url)
+        return res['data']
+
+    def get_pod(self, workload: RancherWorkload, elem=1):
+        url = f'/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name'
+        res = self.get(url)
+        for w in res["data"]:
+            if w["workloadId"] == workload.id:
+                return RancherPod(w)
+        raise ObjectNotFound(workload.id)
+
+    # containers
+    def list_containers(self):
+        url = f'/project/{self.cluster}:{self.project}/containers?limit=-1&sort=name'
+        res = self.get(url)
+        return res['data']
+
+    def list_clusters(self):
+        res = self.get('/clusters')
+        return [(e['name'], e['id']) for e in res['data']]
+
+    def list_projects(self):
+        response = self.get(f'/clusters/{self.cluster}/projects')
+        return [(e['name'], e['id']) for e in response['data']]
+
+    def list_workloads(self):
+        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads')
+        return [(e['name'], e['id']) for e in response['data']]
+
+    def get_workload(self, name):
+        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads/{name}')
+        return response
+
+    def upgrade(self, workload, image):
+        url = f'/project/{self.cluster}:{self.project}/workloads/{workload.id}'
+        response = self.get(url)
+        json = response.copy()
+        found = set()
+        if 'containers' in response:
+            for pod in json['containers']:
+                found.add(pod['image'])
+                pod['image'] = image.id
+        return self.put(url, data=json)
+
+    def _get_cluster_id_by_name(self, name):
         res = self.get('/clusters')
         for entry in res['data']:
             if entry['name'] == name:
                 return entry['id']
         raise InvalidName(f"Invalid cluster name '{name}'")
 
-    def get_project_id_by_name(self, name):
-        cluster, project = name
-        cluster_id = self.get_cluster_id_by_name(cluster)
-        res = self.get(f'/clusters/{cluster_id}/projects')
+    def _get_project_id_by_name(self, name):
+        res = self.get(f'/clusters/{self.cluster}/projects')
         for entry in res['data']:
-            if entry['name'] == project:
-                return entry['id'].split(":")
+            if entry['name'] == name:
+                return entry['id'].split(":")[1]
         raise InvalidName(f"Invalid project name '{name}'")
 
-    def get_workload_id_by_name(self, project, name):
-        cluster, project = self.get_project_id_by_name(project)
-        response = self.get(f'/projects/{cluster}:{project}/workloads')
+    def _get_workload_id_by_name(self, project, name):
+        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads')
         for workload in response['data']:
             if workload['name'] == name[-1]:
-                return cluster, project, workload['id'].split(":")
-
-        # cluster_id = self.get_cluster_id_by_name(cluster)
-        # res = self.get(f'/clusters/{cluster_id}/projects')
-        # for entry in res['data']:
-        #     if entry['name'] == project:
-        #         return entry['id'].split(":")
-        raise InvalidName(f"Invalid workload name '{name}'")
+                return workload['id'].split(":")
+        raise InvalidName(f"Invalid workload name '{':'.join(name)}'")
 
 
 class DockerClient(HttpClient):
@@ -128,14 +261,35 @@ class DockerClient(HttpClient):
         self.token = response.json()['token']
         return self.token
 
+    def get_tags(self, image, filter='.*', max_pages=None):
+        ret = []
+        url = f'/repositories/{image.account}/{image.image}/tags/'
+        rex = re.compile(filter)
+        page = 1
+        while url:
+            response = self.get(url)
+            for e in response['results']:
+                if rex.search(e['name']):
+                    yield e
+            if max_pages and page > max_pages:
+                break
+            url = response['next']
+        return sorted(ret)
+
 
 def handle_http_error(func):
     @wraps(func)
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except (HttpError, ConnectionError) as e:
+        except ServerSSLError as e:
+            fail(e)
+        except HttpError as e:
+            data = e.response.json()
+            error(e.url)
+            jprint(data)
+        except ServerConnectionError as e:
             error(str(e))
-            sys.exit(1)
+            error(str(e.reason))
 
     return inner
