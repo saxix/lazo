@@ -63,9 +63,9 @@ You can inspect your default configuration with:
       
     $ lazo rancher -i -n info -p cluster1:bitcaster -w bitcaster:bitcaster
     Workload infos:
-        Image: bitcaster/bitcaster:0.3.0a15
-        Command: ['stack']
-        imagePullPolicy: Always    
+    Image: bitcaster/bitcaster:0.3.0a15
+    Command: ['stack']
+    imagePullPolicy: Always    
 
 ##### upgrading workload
 
