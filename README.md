@@ -44,17 +44,29 @@ or using [pipsi](https://pypi.org/project/pipsi/)
 
 You can inspect your default configuration with:
 
+    $ lazo --defaults
+    Env                  Value                                              Origin
+    repository           https://hub.docker.com/v2
+    auth
+    base_url
+    cluster
+    insecure             False
+    project
+    use_names            False
+    
+or list handler environment variables with:
+
     $ lazo --env
-    Env                  Value                          Default                        Env value
-    DOCKER_REPOSITORY    https://hub.docker.com/v2      https://hub.docker.com/v2
-    RANCHER_AUTH         <SET>                                                         <SET>
-    RANCHER_BASE_URL     https://r.example.com/v3                                      https://r.example.com/v3
-    RANCHER_CLUSTER      cluster1                                                      cluster1
-    RANCHER_INSECURE     False                          False
-    RANCHER_PROJECT      bitcaster                                                     bitcaster
-    RANCHER_USE_NAMES    False                          False
-    RANCHER_WORKLOAD          
-      
+    Env                  Value
+    DOCKER_REPOSITORY    -- not set --
+    RANCHER_AUTH         -- not set --
+    RANCHER_BASE_URL     -- not set --
+    RANCHER_CLUSTER      -- not set --
+    RANCHER_INSECURE     -- not set --
+    RANCHER_PROJECT      -- not set --
+    RANCHER_USE_NAMES    -- not set --      
+
+
 ### Examples
 
 #### Rancher
