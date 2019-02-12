@@ -39,7 +39,9 @@ class DockerImage:
         elif self.image:
             self.id = f"{self.account}/{self.image}"
         else:
-            self.id = self.account
+            raise ValueError(value)
+
+        #     self.id = self.account
 
     def __repr__(self):
         return self.id
