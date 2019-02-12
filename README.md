@@ -2,10 +2,17 @@
 
 [![PyPI version](https://badge.fury.io/py/lazo.svg)](https://badge.fury.io/py/lazo)
 
-Small utility to upgrade Rancher images. It has been developd to be used in CI environments.
+Small utility to work with Rancher. It has been developd to be used in CI environments.
 
+Current features:
+
+ - get infos on running cluster/project/workload
+ - get docker image info
+ - upgrade workload 
+ - execute commands in running containers
+ 
+  
 ### Install
-
 
     $ pip install lazo
     
