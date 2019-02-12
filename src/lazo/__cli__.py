@@ -31,7 +31,7 @@ def display(value):
 PROTECTED = ['auth']
 
 
-@click.group(context_settings=CONTEXT_SETTINGS, cls=MyCLI, invoke_without_command=True)
+@click.group(context_settings=CONTEXT_SETTINGS, cls=MyCLI, invoke_without_command=True, no_args_is_help=True)
 @click.version_option(lazo.__version__)
 @make_option('--env', is_flag=True, is_eager=True)
 @make_option('--defaults', is_flag=True, is_eager=True)
@@ -54,6 +54,7 @@ def cli(ctx, env, defaults, **kwargs):
             name = opt.name
             value, descr = get_value(opt)
             click.echo(f"{name:<20} {value:<50} {descr}")
+        sys.exit(0)
     elif env:
         click.echo(f"{'Env':<20} Value")
         for i, opt in sorted(all_envs.items()):

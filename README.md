@@ -57,38 +57,47 @@ You can inspect your default configuration with:
       
 ### Examples
 
-    $ lazo upgrade cluster1:worload1 saxix/devpi:latest \
-           --key api-key \
-           --secret api-secret \
-           --base-url https://rancher.example.com/v3/
-           --cluster c-wwk6v
-           --project p-xd4dg
-               
-Use environment variables
+#### Rancher
 
-    $ export RANCHER_KEY=key
-    $ export RANCHER_SECRET=secret
-    $ export RANCHER_CLUSTER=c-wwk6v
-    $ export RANCHER_PROJECT=p-xd4dg
-    $ export RANCHER_ENDPOINT=https://rancher.example.com/v3/
-    $
-    $ lazo upgrade namespace:worload1 saxix/devpi:latest \
-
-Use stdin to read credentials
-
-    $  cat .pass.txt | lazo --stdin \
-                            upgrade bitcaster:bitcaster \
-                            bitcaster/bitcaster:0.3.0a10 \
-                            --insecure
-
-Examples:
---------
-   
+##### get infos on running workload
+      
     $ lazo rancher -i -n info -p cluster1:bitcaster -w bitcaster:bitcaster
     Workload infos:
         Image: bitcaster/bitcaster:0.3.0a15
         Command: ['stack']
         imagePullPolicy: Always    
+
+##### upgrading workload
+
+    $ export RANCHER_KEY=key
+    $ export RANCHER_SECRET=secret
+    $ lazo upgrade saxix/devpi:latest \
+           --base-url https://rancher.example.com/v3/
+           --cluster c-wwk6v
+           --project p-xd4dg
+ 
+##### use stdin to read credentials
+
+    $  cat .pass.txt | lazo --stdin \
+        upgrade bitcaster:bitcaster \
+        bitcaster/bitcaster:0.3.0a10 \
+        --insecure
+
+##### execute command in running container
+
+    $ lazo shell bitcaster:db -- ls -al /var/log
+    total 432
+    drwxr-xr-x 1 root        root       4096 Jan  1 01:39 .
+    drwxr-xr-x 1 root        root       4096 Dec 26 00:00 ..
+    drwxr-xr-x 1 root        root       4096 Jan  1 01:39 apt
+    -rw-r--r-- 1 root        root      74886 Jan  1 01:39 dpkg.log
+    -rw-r--r-- 1 root        root      32000 Jan  1 01:39 faillog
+    drwxr-xr-x 2 root        root       4096 May 25  2017 sysstat
+
+
+#### Docker
+
+##### list image available tags
 
     $ lazo docker info saxix/devpi
     latest
@@ -98,6 +107,7 @@ Examples:
     2.0
     1.1
 
+##### get information on image
 
     $ lazo docker info library/python --filter '3\.6.*alpine3.8' --size
     3.6-alpine3.8                  26.2MiB
