@@ -1,0 +1,65 @@
+{
+  "baseType": "workload",
+  "containers": [
+    {
+      "allowPrivilegeEscalation": false,
+      "image": "ubuntu:xenial",
+      "imagePullPolicy": "Always",
+      "initContainer": false,
+      "name": "test",
+      "privileged": false,
+      "readOnly": false,
+      "resources": {
+        "type": "/v3/project/schemas/resourceRequirements"
+      },
+      "restartCount": 0,
+      "runAsNonRoot": false,
+      "stdin": true,
+      "stdinOnce": false,
+      "terminationMessagePath": "/dev/termination-log",
+      "terminationMessagePolicy": "File",
+      "tty": true,
+      "type": "/v3/project/schemas/container"
+    }
+  ],
+  "deploymentConfig": {
+    "maxSurge": 1,
+    "maxUnavailable": 0,
+    "minReadySeconds": 0,
+    "progressDeadlineSeconds": 600,
+    "revisionHistoryLimit": 10,
+    "strategy": "RollingUpdate"
+  },
+  "dnsPolicy": "ClusterFirst",
+  "hostIPC": false,
+  "hostNetwork": false,
+  "hostPID": false,
+  "id": "deployment:bitcaster:test",
+  "name": "test",
+  "namespaceId": "bitcaster",
+  "paused": false,
+  "projectId": "c-wwk6v:p-xd4dg",
+  "restartPolicy": "Always",
+  "scale": 1,
+  "schedulerName": "default-scheduler",
+  "selector": {
+    "matchLabels": {
+      "workload.user.cattle.io/workloadselector": "deployment-bitcaster-test"
+    },
+    "type": "/v3/project/schemas/labelSelector"
+  },
+  "state": "active",
+  "terminationGracePeriodSeconds": 30,
+  "transitioning": "no",
+  "transitioningMessage": "",
+  "type": "deployment",
+  "uuid": "48012cdb-240b-11e9-9c50-b8aeede9e9b0",
+  "workloadAnnotations": {
+    "deployment.kubernetes.io/revision": "1",
+    "field.cattle.io/creatorId": "user-bbts7"
+  },
+  "workloadLabels": {
+    "cattle.io/creator": "norman",
+    "workload.user.cattle.io/workloadselector": "deployment-bitcaster-test"
+  }
+}

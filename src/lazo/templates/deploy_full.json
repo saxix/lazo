@@ -1,0 +1,119 @@
+{
+  "actions": {
+    "pause": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test?action=pause",
+    "resume": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test?action=resume",
+    "rollback": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test?action=rollback"
+  },
+  "annotations": {
+    "cattle.io/timestamp": "2019-01-29T21:17:28Z"
+  },
+  "baseType": "workload",
+  "containers": [
+    {
+      "allowPrivilegeEscalation": false,
+      "image": "ubuntu:xenial",
+      "imagePullPolicy": "Always",
+      "initContainer": false,
+      "name": "test",
+      "privileged": false,
+      "readOnly": false,
+      "resources": {
+        "type": "/v3/project/schemas/resourceRequirements"
+      },
+      "restartCount": 0,
+      "runAsNonRoot": false,
+      "stdin": true,
+      "stdinOnce": false,
+      "terminationMessagePath": "/dev/termination-log",
+      "terminationMessagePolicy": "File",
+      "tty": true,
+      "type": "/v3/project/schemas/container"
+    }
+  ],
+  "created": "2019-01-29T21:17:28Z",
+  "createdTS": 1548796648000,
+  "creatorId": null,
+  "deploymentConfig": {
+    "maxSurge": 1,
+    "maxUnavailable": 0,
+    "minReadySeconds": 0,
+    "progressDeadlineSeconds": 600,
+    "revisionHistoryLimit": 10,
+    "strategy": "RollingUpdate"
+  },
+  "deploymentStatus": {
+    "availableReplicas": 1,
+    "conditions": [
+      2
+      items
+      {
+        "lastTransitionTime": "2019-01-29T21:17:32Z",
+        "lastTransitionTimeTS": 1548796652000,
+        "lastUpdateTime": "2019-01-29T21:17:32Z",
+        "lastUpdateTimeTS": 1548796652000,
+        "message": "Deployment has minimum availability.",
+        "reason": "MinimumReplicasAvailable",
+        "status": "True",
+        "type": "Available"
+      },
+      {
+        "lastTransitionTime": "2019-01-29T21:17:28Z",
+        "lastTransitionTimeTS": 1548796648000,
+        "lastUpdateTime": "2019-01-29T21:17:32Z",
+        "lastUpdateTimeTS": 1548796652000,
+        "message": "ReplicaSet \"test-557f84cc5b\" has successfully progressed.",
+        "reason": "NewReplicaSetAvailable",
+        "status": "True",
+        "type": "Progressing"
+      }
+    ],
+    "observedGeneration": 1,
+    "readyReplicas": 1,
+    "replicas": 1,
+    "type": "/v3/project/schemas/deploymentStatus",
+    "unavailableReplicas": 0,
+    "updatedReplicas": 1
+  },
+  "dnsPolicy": "ClusterFirst",
+  "hostIPC": false,
+  "hostNetwork": false,
+  "hostPID": false,
+  "id": "deployment:bitcaster:test",
+  "labels": {
+    "workload.user.cattle.io/workloadselector": "deployment-bitcaster-test"
+  },
+  "links": {
+    "remove": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test",
+    "revisions": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test/revisions",
+    "self": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test",
+    "update": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test",
+    "yaml": "…/v3/project/c-wwk6v:p-xd4dg/workloads/deployment:bitcaster:test/yaml"
+  },
+  "name": "test",
+  "namespaceId": "bitcaster",
+  "paused": false,
+  "projectId": "c-wwk6v:p-xd4dg",
+  "restartPolicy": "Always",
+  "scale": 1,
+  "schedulerName": "default-scheduler",
+  "selector": {
+    "matchLabels": {
+      "workload.user.cattle.io/workloadselector": "deployment-bitcaster-test"
+    },
+    "type": "/v3/project/schemas/labelSelector"
+  },
+  "state": "active",
+  "terminationGracePeriodSeconds": 30,
+  "transitioning": "no",
+  "transitioningMessage": "",
+  "type": "deployment",
+  "uuid": "48012cdb-240b-11e9-9c50-b8aeede9e9b0",
+  "workloadAnnotations": {
+    "deployment.kubernetes.io/revision": "1",
+    "field.cattle.io/creatorId": "user-bbts7"
+  },
+  "workloadLabels": {
+    "cattle.io/creator": "norman",
+    "workload.user.cattle.io/workloadselector": "deployment-bitcaster-test"
+  }
+}
