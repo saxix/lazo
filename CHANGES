@@ -1,11 +1,8 @@
-1.3
----
-* add subcommand 'list'
-
-
 1.2.2
 -----
 * fixes packaging
+* add subcommand 'list'
+* clean error message in shell
 
 
 1.2
