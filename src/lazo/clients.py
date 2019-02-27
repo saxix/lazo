@@ -46,7 +46,7 @@ class HttpClient:
     def __init__(self, base_url, *, verify=True, debug=False, auth=None, **kwargs):
         o = urlparse(base_url)
         self.scheme = o.scheme or 'http'
-        self.port = o.port or 80
+        self.port = o.port or {"http":80, "https":443}[self.scheme]
         self.scheme = o.scheme
         self.host = o.hostname
         self.path = o.path

@@ -68,17 +68,17 @@ class IChoice(click.Choice):
         return super().convert(value, param, ctx)
 
 
-class TargetParamType(ExParamType):
-    def convert(self, value, param, ctx):
-        try:
-            parts = value.split(":")
-            assert len(parts) == 2
-        except Exception:
-            self.rfail(f"Invalid value '{value}' for TARGET. Please indicate target in the form 'namespace:workload' ")
-        return parts
-
-
-Target = TargetParamType()
+# class TargetParamType(ExParamType):
+#     def convert(self, value, param, ctx):
+#         try:
+#             parts = value.split(":")
+#             assert len(parts) == 2
+#         except Exception:
+#             self.rfail(f"Invalid value '{value}' for TARGET. Please indicate target in the form 'namespace:workload' ")
+#         return parts
+#
+#
+# Target = TargetParamType()
 
 
 class WorkloadParamType(ExParamType):
@@ -86,8 +86,8 @@ class WorkloadParamType(ExParamType):
         try:
             return RancherWorkload(value)
         except Exception:
-            self.rfail(f"Invalid value '{value}' for TARGET. "
-                       f"Please indicate target in the form '[deployment:]namespace:workload' ")
+            self.rfail(f"Invalid  workload name '{value}'"
+                       f"Please use the form '[deployment:]namespace:workload' ")
 
 
 Workload = WorkloadParamType()

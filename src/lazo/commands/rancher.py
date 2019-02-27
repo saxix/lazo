@@ -68,7 +68,8 @@ def info(ctx, cluster, project, workload: RancherWorkload, verbosity, **kwargs):
     client = ctx.obj['client']
 
     client.cluster = cluster
-    client.project = project
+    if project:
+        client.project = project
 
     if workload:
         echo('Workload infos:')
@@ -78,16 +79,16 @@ def info(ctx, cluster, project, workload: RancherWorkload, verbosity, **kwargs):
                 echo("Image:", e['image'])
                 echo("imagePullPolicy:", e['imagePullPolicy'])
         if 'publicEndpoints' in info:
-            echo("Ingress:", info['publicEndpoints']['ingressId'])
-            echo("Hostname:", info['publicEndpoints']['hostname'])
-        jprint(info)
+            for e in info['publicEndpoints']:
+                echo("Ingress:", e['ingressId'])
+                echo("Hostname:", e['hostname'])
     elif project:
         echo('Project workloads:')
         for workload in client.list_workloads():
             echo(f"\t{workload[0]:>20}    {workload[1]:<40}")
     elif cluster:
-        response = client.get(f'/clusters/{cluster}/projects')
-        echo('Projects on cluster:')
+        response = client.get(f'/clusters/{client.cluster}/projects')
+        echo(f'Projects on cluster: {client.cluster}')
         for project in response['data']:
             echo(f"\t{project['name']:>15}    {project['id']:<40}")
     else:
@@ -170,8 +171,8 @@ def upgrade(ctx, cluster, project, workload: RancherWorkload, image: DockerImage
 @options([CLUSTER, PROJECT])
 @argument('workload', type=Workload, metavar='NAME')
 @argument('command', nargs=-1)
-@make_option('-c', '--check', is_flag=True)
-@make_option('-c', '--dry-run', is_flag=True)
+# @make_option('-c', '--check', is_flag=True)
+# @make_option('-c', '--dry-run', is_flag=True)
 @click.pass_context
 @handle_http_error
 def shell(ctx, cluster, project, workload: RancherWorkload, command, **kwargs):
@@ -179,7 +180,7 @@ def shell(ctx, cluster, project, workload: RancherWorkload, command, **kwargs):
     client.cluster = cluster
     client.project = project
     pod = client.get_pod(workload)
-    cmds = [('container', 'db'),
+    cmds = [('container', pod.workload.name),
             ('stdin', '1'),
             ('stdout', '1'),
             ('stderr', '1'),
@@ -187,6 +188,11 @@ def shell(ctx, cluster, project, workload: RancherWorkload, command, **kwargs):
             ]
     cmds.extend(prepare_command(command))
     qs = urllib.parse.urlencode(cmds)
-    url = f'/k8s/clusters/{client.cluster}/api/v1/namespaces/{workload.namespace}/pods/{pod.name}/exec?{qs}'
-    ret = client.ws(url)
+    try:
+        url = f'/k8s/clusters/{client.cluster}/api/v1/namespaces/{workload.namespace}/pods/{pod.name}/exec?{qs}'
+        ret = client.ws(url)
+    except Exception as e:
+        error(e)
+        sys.exit(1)
+
     print(ret)
