@@ -1,5 +1,6 @@
 import inspect
 import itertools
+from functools import partial
 
 import click
 from click import Option
@@ -90,12 +91,14 @@ _rancher_options = [make_option('-b',
                     ]
 CLUSTER = make_option('-c',
                       '--cluster',
+                      required=True,
                       envvar='RANCHER_CLUSTER',
                       help='Rancher cluster key.',
                       cls=OOption,
                       metavar='TEXT')
 PROJECT = make_option('-p',
                       '--project',
+                      required=True,
                       type=Project,
                       envvar='RANCHER_PROJECT',
                       cls=OOption,

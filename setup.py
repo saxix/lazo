@@ -1,4 +1,4 @@
-    #!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import ast
 import codecs
@@ -33,7 +33,7 @@ setup(name='lazo',
                         'colorama==0.4.1',
                         'pygments',
                         'requests==2.21.0',
-                        'websocket-client',
+                        'websocket-client==0.55.0',
                         ],
       test_requires=test_requires,
       extras_require={

@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import _thread
 import websocket
+from click import UsageError
 from requests import request
 from requests.exceptions import SSLError
 
@@ -277,13 +278,15 @@ class DockerClient(HttpClient):
         return sorted(ret)
 
 
-def handle_http_error(func):
+def handle_lazo_error(func):
     @wraps(func)
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except ServerSSLError as e:
             fail(e)
+        except UsageError as e:
+            error(e)
         except HttpError as e:
             data = e.response.json()
             error(e.url)

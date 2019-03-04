@@ -1,7 +1,9 @@
 from click import BadParameter, UsageError
 
+class LazoError(Exception):
+    pass
 
-class ServerConnectionError(Exception):
+class ServerConnectionError(LazoError):
     def __init__(self, url, exc=None):
         self.url = url
         self.reason = exc
@@ -15,7 +17,7 @@ class ServerSSLError(ServerConnectionError):
         return 'Certificate verify failed. Try to use --insecure'
 
 
-class HttpError(Exception):
+class HttpError(LazoError):
     def __init__(self, url, response, exc=None):
         self.url = url
         self.response = response
@@ -29,9 +31,10 @@ class Http404(HttpError):
     pass
 
 
-class InvalidName(Exception):
+class InvalidName(UsageError):
     def __init__(self, name):
         self.name = name
+        self.message = name
 
 
 class InvalidCredentials(HttpError):
