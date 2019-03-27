@@ -29,7 +29,7 @@ class RancherPod:
 
 class DockerImage:
     def __init__(self, value, partial=False):
-        rex = re.compile(r"(?P<account>\w*)/?(?P<image>\w*):?(?P<tag>[\w\.-]*)")
+        rex = re.compile(r"(?P<account>\w*)/?(?P<image>[\w-]*):?(?P<tag>[\w\.-]*)")
         m = rex.match(value)
         self.account, self.image, self.tag = m.groups()
         if self.tag and not self.image:

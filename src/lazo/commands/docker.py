@@ -3,7 +3,7 @@ import sys
 import click
 
 from ..__cli__ import cli
-from ..clients import DockerClient, handle_http_error
+from ..clients import DockerClient, handle_lazo_error
 from ..exceptions import HttpError
 from ..out import echo, error, success
 from ..params import _docker_options, _global_options, make_option, options
@@ -63,7 +63,7 @@ def ping(ctx, **kwargs):
 @click.argument("image", type=Image, metavar='IMAGE')
 @make_option("--no-input", is_flag=True)
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def rm(ctx, image, no_input, **kwargs):
     client = ctx.obj['client']
     if image.tag:

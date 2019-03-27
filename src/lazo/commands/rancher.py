@@ -2,10 +2,10 @@ import sys
 import urllib
 
 import click
-from click import argument
+from click import argument, UsageError
 
 from ..__cli__ import cli
-from ..clients import DockerClient, RancherClient, handle_http_error
+from ..clients import DockerClient, RancherClient, handle_lazo_error
 from ..out import echo, error, success
 from ..params import (CLUSTER, PROJECT, _docker_options, _global_options,
                       _rancher_options, make_option, options,)
@@ -25,7 +25,7 @@ def rancher(ctx, base_url, insecure, auth, use_names, debug, **kwargs):
 
 @rancher.command()
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def ping(ctx, **kwargs):
     client = ctx.obj['client']
     if client.ping():
@@ -36,7 +36,7 @@ def ping(ctx, **kwargs):
 
 @rancher.command()
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def settings(ctx, **kwargs):
     client = ctx.obj['client']
     ret = client.get('/settings')
@@ -45,7 +45,7 @@ def settings(ctx, **kwargs):
 
 @rancher.command()
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def login(ctx, **kwargs):
     client = ctx.obj['client']
     if client.ping():
@@ -63,7 +63,7 @@ def login(ctx, **kwargs):
               help='Rancher workload.',
               metavar='TEXT')
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def info(ctx, cluster, project, workload: RancherWorkload, verbosity, **kwargs):
     client = ctx.obj['client']
 
@@ -129,18 +129,12 @@ def containers(ctx, cluster, project):
 @rancher.command()
 @options(_global_options, _docker_options)
 @options([CLUSTER, PROJECT])
-# @click.option('-w',
-#               '--workload',
-#               required=True,
-#               type=Workload,
-#               help='Rancher workload.',
-#               metavar='TEXT')
 @argument('workload', type=Workload, metavar='WORKLOAD')
 @argument('image', type=Image, metavar='IMAGE')
-@make_option('-c/-x', '--check/--no-check', is_flag=True, default=True)
+@make_option('--check/--no-check', is_flag=True, default=True)
 # @make_option('-c', '--dry-run', is_flag=True)
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def upgrade(ctx, cluster, project, workload: RancherWorkload, image: DockerImage, dry_run, check,
             repository, username, password, **kwargs):
     client = ctx.obj['client']
@@ -174,7 +168,7 @@ def upgrade(ctx, cluster, project, workload: RancherWorkload, image: DockerImage
 # @make_option('-c', '--check', is_flag=True)
 # @make_option('-c', '--dry-run', is_flag=True)
 @click.pass_context
-@handle_http_error
+@handle_lazo_error
 def shell(ctx, cluster, project, workload: RancherWorkload, command, **kwargs):
     client = ctx.obj['client']
     client.cluster = cluster

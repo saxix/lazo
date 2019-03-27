@@ -86,7 +86,7 @@ class WorkloadParamType(ExParamType):
         try:
             return RancherWorkload(value)
         except Exception:
-            self.rfail(f"Invalid  workload name '{value}'"
+            self.rfail(f"Invalid  workload name '{value}'. "
                        f"Please use the form '[deployment:]namespace:workload' ")
 
 
