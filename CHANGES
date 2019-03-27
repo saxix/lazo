@@ -1,3 +1,8 @@
+1.3
+---
+* fixes `shell` subcommand
+* fixes docker image name parsing
+
 1.2.2
 -----
 * fixes packaging
