@@ -12,27 +12,32 @@ from ..utils import jprint, sizeof
 
 
 @cli.group()
-@options(_global_options, _docker_options)
+@options(_global_options)
 @click.pass_context
-def docker(ctx, repository, username, password, stdin, **kwargs):
-    if stdin:
-        username, password = stdin
-    ctx.obj['client'] = DockerClient(repository,
-                                     username=username, password=password,
-                                     debug=ctx.find_root().command.debug)
+def docker(ctx, **kwargs):
+    pass
+    # if stdin:
+    #     username, password = stdin
+    # ctx.obj['client'] = DockerClient(repository,
+    #                                  username=username, password=password,
+    #                                  debug=ctx.find_root().command.debug)
 
 
 @docker.command()
-@options(_global_options)
+@options(_global_options, _docker_options)
 @click.argument("image", type=Image, metavar='IMAGE')
 @click.option("--filter", metavar='REGEX', default='.*')
 @click.option("--size", is_flag=True)
 @click.pass_context
-def info(ctx, image, filter, size, **kwargs):
-    client = ctx.obj['client']
+def info(ctx, image, filter, size, repository, username, password, stdin, **kwargs):
+    client = DockerClient(repository,
+                          username=username, password=password,
+                          debug=ctx.find_root().command.debug)
+
+    client.base_url = image.repository
     try:
         if image.tag:
-            response = client.get(f'/repositories/{image.account}/{image.image}/tags/{image.tag}/')
+            response = client.get(f'/repositories/{image.image}/tags/{image.tag}/')
             jprint(response)
         elif image.image:
             for tag in client.get_tags(image, filter):

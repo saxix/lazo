@@ -29,19 +29,34 @@ class RancherPod:
 
 class DockerImage:
     def __init__(self, value, partial=False):
-        rex = re.compile(r"(?P<account>\w*)/?(?P<image>[\w-]*):?(?P<tag>[\w\.-]*)")
-        m = rex.match(value)
-        self.account, self.image, self.tag = m.groups()
-        if self.tag and not self.image:
-            raise Exception("Tag needs and image")
+        parts = value.split(':')
+        self.repo = "hub.docker.com"
+        self.tag = "latest"
+        if len(parts) == 2:
+            self.image, self.tag = parts
+        elif len(parts) == 1:
+            self.image = parts[0]
+        else:
+            raise ValueError(value)
+        #
+        # parts = self.image.split('/')
+        # if len(parts) == 3:
+        #     self.repo, self.ns, self.name = parts
+        # elif len(parts) == 2:
+        #     self.ns, self.name = parts
+        # else:
+        #     raise ValueError(value)
+
         if self.tag:
-            self.id = f"{self.account}/{self.image}:{self.tag}"
+            self.id = f"{self.image}:{self.tag}"
         elif self.image:
-            self.id = f"{self.account}/{self.image}"
+            self.id = f"{self.image}"
         else:
             raise ValueError(value)
 
-        #     self.id = self.account
+    @property
+    def repository(self):
+        return f"https://{self.repo}"
 
     def __repr__(self):
         return self.id

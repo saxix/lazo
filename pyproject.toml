@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "lazo"
+version = "1.4.2"
+description = "lazo"
+authors = []
+
+[tool.poetry.dependencies]
+click = "7.0"
+colorama = "0.4.1"
+requests = ">=2.21.0"
+websocket-client = "0.55.0"
+
+[tool.poetry.dev-dependencies]
+bumpversion = "^0.5.3"
+ipdb = "^0.13.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

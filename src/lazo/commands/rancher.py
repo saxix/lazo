@@ -8,7 +8,7 @@ from ..__cli__ import cli
 from ..clients import DockerClient, RancherClient, handle_lazo_error
 from ..out import echo, error, success
 from ..params import (CLUSTER, PROJECT, _docker_options, _global_options,
-                      _rancher_options, make_option, options,)
+                      _rancher_options, make_option, options, )
 from ..types import DockerImage, Image, RancherWorkload, Workload
 from ..utils import jprint, prepare_command
 
@@ -129,16 +129,17 @@ def containers(ctx, cluster, project):
 @rancher.command()
 @options(_global_options, _docker_options)
 @options([CLUSTER, PROJECT])
-@argument('workload', type=Workload, metavar='WORKLOAD')
-@argument('image', type=Image, metavar='IMAGE')
+@make_option('--workload', '-w', 'workloads', type=Workload, metavar='WORKLOAD', required=True, multiple=True)
+@make_option('--image', '-i', type=Image, metavar='IMAGE', required=True, )
 @make_option('--check/--no-check', is_flag=True, default=True)
-# @make_option('-c', '--dry-run', is_flag=True)
 @click.pass_context
 @handle_lazo_error
-def upgrade(ctx, cluster, project, workload: RancherWorkload, image: DockerImage, dry_run, check,
+def upgrade(ctx, cluster, project, workloads: [RancherWorkload], image: DockerImage, check,
             repository, username, password, **kwargs):
     client = ctx.obj['client']
     if check:
+        if not repository:
+            repository = image.repository
         docker = DockerClient(repository, username=username, password=password)
         if not docker.exists(image):
             error(f"Cannot find image '{image.id}' on {repository}")
@@ -147,17 +148,19 @@ def upgrade(ctx, cluster, project, workload: RancherWorkload, image: DockerImage
     client.cluster = cluster
     client.project = project
     # namespace, workload_name = workload
-    echo(f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}' to '{image.id}'")
 
-    client.upgrade(workload, image)
-    info = client.get_workload(workload)
-    if 'containers' in info:
-        for e in info['containers']:
-            echo("Image:", e['image'])
-    if 'publicEndpoints' in info:
-        for ep in info['publicEndpoints']:
-            echo("Ingress:", ep['ingressId'])
-            echo("Hostname:", ep.get('hostname', ''))
+    for workload in workloads:
+        echo(f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}' to '{image.id}'")
+
+        client.upgrade(workload, image)
+        info = client.get_workload(workload)
+        if 'containers' in info:
+            for e in info['containers']:
+                echo("Image:", e['image'])
+        if 'publicEndpoints' in info and info['publicEndpoints']:
+            for ep in info['publicEndpoints']:
+                echo("Ingress:", ep['ingressId'])
+                echo("Hostname:", ep.get('hostname', ''))
 
 
 @rancher.command()
