@@ -2,6 +2,7 @@
 lazo.egg-info
 dist
 !.gitignore
+!tests/.coveragerc
 !.bumpversion.cfg
 !.flake8
 !.isort.cfg

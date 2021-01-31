@@ -4,8 +4,7 @@ python:
   - 3.6
 
 install:
-  - pip install poetry
-  - poetry install
+  - pip install
 
 script:
   - pytest tests
