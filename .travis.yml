@@ -4,7 +4,8 @@ python:
   - 3.6
 
 install:
-  - pip install toml
+  - pip install poetry
+  - poetry install
 
 script:
   - pytest tests
