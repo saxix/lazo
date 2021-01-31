@@ -3,12 +3,5 @@ sudo: false
 python:
   - 3.6
 
-install:
-  - pip install tox
-
 script:
-  - tox
-
-after_success:
-  - coverage combine
-  - codecov
+  - pytest tests
