@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lazo"
-version = "1.4.2"
+version = "1.5.0a"
 description = "lazo"
 authors = []
 
@@ -9,10 +9,14 @@ click = "7.0"
 colorama = "0.4.1"
 requests = ">=2.21.0"
 websocket-client = "0.55.0"
+pygments = "*"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.5.3"
-ipdb = "^0.13.2"
+pytest = "*"
+pytest-coverage = "*"
+isort = "*"
+flake8 = "*"
 
 [build-system]
 requires = ["poetry>=0.12"]

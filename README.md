@@ -16,9 +16,9 @@ Current features:
 
     $ pip install lazo
     
-or using [pipsi](https://pypi.org/project/pipsi/) 
+or using [pipx](https://pypi.org/project/pipx/) 
 
-    $ pipsi install lazo
+    $ pipx install lazo
     
 ### Help        
         

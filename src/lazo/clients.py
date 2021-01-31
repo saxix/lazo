@@ -15,7 +15,7 @@ from lazo.objects import RancherPod
 from lazo.types import RancherWorkload
 
 from .exceptions import (HttpError, InvalidCredentials, InvalidName,
-                         ObjectNotFound, ServerConnectionError, ServerSSLError,)
+                         ObjectNotFound, ServerConnectionError, ServerSSLError, )
 from .out import echo, error, fail
 from .utils import jprint
 
@@ -47,7 +47,7 @@ class HttpClient:
     def __init__(self, base_url, *, verify=True, debug=True, auth=None, **kwargs):
         o = urlparse(base_url)
         self.scheme = o.scheme or 'http'
-        self.port = o.port or {"http":80, "https":443}[self.scheme]
+        self.port = o.port or {"http": 80, "https": 443}[self.scheme]
         self.scheme = o.scheme
         self.host = o.hostname
         self.path = o.path

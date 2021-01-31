@@ -2,5 +2,10 @@
 lazo.egg-info
 dist
 !.gitignore
+!.bumpversion.cfg
+!.flake8
+!.isort.cfg
+!.travis.yml
 Pipfile
 Pipfile.lock
+poetry.lock

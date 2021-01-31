@@ -21,9 +21,9 @@ class UrlParamType(ExParamType):
             o = urlparse(value)
             assert not o.path.endswith('/')
         except AssertionError:
-            self.fail(f"Url should not ends with '/'")
+            self.fail("Url should not ends with '/'")
         except Exception:
-            self.fail(f"Invalid url. Should be something like 'https://rancher.example.com:9000/v3/'")
+            self.fail("Invalid url. Should be something like 'https://rancher.example.com:9000/v3/'")
 
         return value
 
@@ -66,19 +66,6 @@ class IChoice(click.Choice):
         if value in ImagePullPolices:
             value = ImagePullPolices[value]
         return super().convert(value, param, ctx)
-
-
-# class TargetParamType(ExParamType):
-#     def convert(self, value, param, ctx):
-#         try:
-#             parts = value.split(":")
-#             assert len(parts) == 2
-#         except Exception:
-#             self.rfail(f"Invalid value '{value}' for TARGET. Please indicate target in the form 'namespace:workload' ")
-#         return parts
-#
-#
-# Target = TargetParamType()
 
 
 class WorkloadParamType(ExParamType):

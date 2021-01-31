@@ -43,7 +43,15 @@ def test_dockerimage_default():
     i = DockerImage("bitcaster/bitcaster")
     assert i.account == 'bitcaster'
     assert i.image == 'bitcaster'
-    assert i.tag == ''
+    assert i.tag == 'latest'
+
+
+def test_dockerimage_customrepo():
+    i = DockerImage("gilab.com/bitcaster/bitcaster")
+    assert i.repo == 'gilab.com'
+    assert i.account == 'bitcaster'
+    assert i.image == 'bitcaster'
+    assert i.tag == 'latest'
 
 
 def test_dockerimage_account():

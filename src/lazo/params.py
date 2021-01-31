@@ -1,6 +1,5 @@
 import inspect
 import itertools
-from functools import partial
 
 import click
 from click import Option

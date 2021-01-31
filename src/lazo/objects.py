@@ -1,4 +1,3 @@
-import re
 
 
 class RancherWorkload:
@@ -33,24 +32,26 @@ class DockerImage:
         self.repo = "hub.docker.com"
         self.tag = "latest"
         if len(parts) == 2:
-            self.image, self.tag = parts
+            _image, self.tag = parts
         elif len(parts) == 1:
-            self.image = parts[0]
+            _image = parts[0]
         else:
             raise ValueError(value)
-        #
-        # parts = self.image.split('/')
-        # if len(parts) == 3:
-        #     self.repo, self.ns, self.name = parts
-        # elif len(parts) == 2:
-        #     self.ns, self.name = parts
-        # else:
-        #     raise ValueError(value)
+
+        parts = _image.split('/')
+        if len(parts) == 3:
+            self.repo, self.account, self.image = parts
+        elif len(parts) == 2:
+            self.account, self.image = parts
+        else:
+            raise ValueError(value)
+        # self.account = parts[0]
+        # self.image= "/".join(parts[1:])
 
         if self.tag:
-            self.id = f"{self.image}:{self.tag}"
+            self.id = f"{_image}:{self.tag}"
         elif self.image:
-            self.id = f"{self.image}"
+            self.id = f"{_image}"
         else:
             raise ValueError(value)
 

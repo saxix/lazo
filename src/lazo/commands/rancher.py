@@ -2,13 +2,13 @@ import sys
 import urllib
 
 import click
-from click import argument, UsageError
+from click import argument
 
 from ..__cli__ import cli
 from ..clients import DockerClient, RancherClient, handle_lazo_error
 from ..out import echo, error, success
 from ..params import (CLUSTER, PROJECT, _docker_options, _global_options,
-                      _rancher_options, make_option, options, )
+                      _rancher_options, make_option, options,)
 from ..types import DockerImage, Image, RancherWorkload, Workload
 from ..utils import jprint, prepare_command
 

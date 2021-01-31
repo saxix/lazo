@@ -1,7 +1,9 @@
 from click import BadParameter, UsageError
 
+
 class LazoError(Exception):
     pass
+
 
 class ServerConnectionError(LazoError):
     def __init__(self, url, exc=None):
