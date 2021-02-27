@@ -1,8 +1,22 @@
 [tool.poetry]
 name = "lazo"
-version = "1.5.1"
+version = "1.6"
 description = "lazo"
-authors = []
+authors = ["sax <s.apostolico@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/saxix/lazo"
+repository = "https://github.com/saxix/lazo"
+keywords = ["docker", "rancher"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+]
+
+[tool.poetry.scripts]
+my-cli = 'lazo.__cli__:cli'
 
 [tool.poetry.dependencies]
 click = "*"

@@ -1,6 +1,14 @@
-1.4 (dev)
+1.6
 ---
+* fixes package
 
+1.5
+---
+* fixes toml
+
+1.4
+---
+* support for private repo
 
 1.3
 ---
