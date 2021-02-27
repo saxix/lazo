@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "lazo"
-version = "1.5.0a"
+version = "1.5.1"
 description = "lazo"
 authors = []
 
 [tool.poetry.dependencies]
-click = "7.0"
-colorama = "0.4.1"
+click = "*"
+colorama = "*"
 requests = ">=2.21.0"
-websocket-client = "0.55.0"
+websocket-client = ">=0.55.0"
 pygments = "*"
 
 [tool.poetry.dev-dependencies]
