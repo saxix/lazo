@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lazo"
-version = "1.6"
+version = "1.6.1"
 description = "lazo"
 authors = ["sax <s.apostolico@gmail.com>"]
 readme = "README.md"
@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [tool.poetry.scripts]
-my-cli = 'lazo.__cli__:cli'
+lazo = 'lazo.__cli__:cli'
 
 [tool.poetry.dependencies]
 click = "*"
