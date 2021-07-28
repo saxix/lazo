@@ -9,4 +9,3 @@ dist
 !.travis.yml
 Pipfile
 Pipfile.lock
-poetry.lock
