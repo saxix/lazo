@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lazo"
-version = "1.6.1"
+version = "1.6.2"
 description = "lazo"
 authors = ["sax <s.apostolico@gmail.com>"]
 readme = "README.md"
