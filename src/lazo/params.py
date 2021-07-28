@@ -1,6 +1,5 @@
 import inspect
 import itertools
-from functools import partial
 
 import click
 from click import Option
@@ -43,7 +42,7 @@ _global_options = [make_option('-v', '--verbosity',
                                type=Verbosity,
                                help="verbosity level",
                                count=True),
-                   make_option('-q', '--quit',
+                   make_option('-q', '--quiet',
                                help="no output",
                                default=0, is_flag=True, type=Verbosity),
                    make_option('-d',

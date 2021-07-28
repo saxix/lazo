@@ -15,7 +15,7 @@ from lazo.objects import RancherPod
 from lazo.types import RancherWorkload
 
 from .exceptions import (HttpError, InvalidCredentials, InvalidName,
-                         ObjectNotFound, ServerConnectionError, ServerSSLError,)
+                         ObjectNotFound, ServerConnectionError, ServerSSLError, )
 from .out import echo, error, fail
 from .utils import jprint
 
@@ -44,10 +44,10 @@ def on_open(ws):
 
 
 class HttpClient:
-    def __init__(self, base_url, *, verify=True, debug=False, auth=None, **kwargs):
+    def __init__(self, base_url, *, verify=True, debug=True, auth=None, **kwargs):
         o = urlparse(base_url)
         self.scheme = o.scheme or 'http'
-        self.port = o.port or {"http":80, "https":443}[self.scheme]
+        self.port = o.port or {"http": 80, "https": 443}[self.scheme]
         self.scheme = o.scheme
         self.host = o.hostname
         self.path = o.path
@@ -67,7 +67,7 @@ class HttpClient:
             url = f"{self.base_url}{url}"
         try:
             if self.debug:
-                echo(f"{cmd} {url}")
+                print(11111, f"{cmd} {url}")
             response = request(cmd, url, auth=self.auth, verify=self.verify, **kwargs)
         except SSLError:
             raise ServerSSLError(url)
@@ -204,6 +204,8 @@ class RancherClient(HttpClient):
     def upgrade(self, workload, image):
         url = f'/project/{self.cluster}:{self.project}/workloads/{workload.id}'
         response = self.get(url)
+        if not response:
+            return
         json = response.copy()
         found = set()
         if 'containers' in response:
@@ -246,7 +248,7 @@ class DockerClient(HttpClient):
 
     def exists(self, image):
         try:
-            self.get(f'/repositories/{image.account}/{image.image}/tags/{image.tag}/')
+            self.get(f'/repositories/{image.image}/tags/{image.tag}/')
             return True
         except HttpError:
             return False
@@ -264,10 +266,12 @@ class DockerClient(HttpClient):
 
     def get_tags(self, image, filter='.*', max_pages=None):
         ret = []
-        url = f'/repositories/{image.account}/{image.image}/tags/'
+        url = f'/repositories/{image.image}/tags/'
         rex = re.compile(filter)
         page = 1
         while url:
+            # TODO: remove me
+            print(111, "clients.py:272", url)
             response = self.get(url)
             for e in response['results']:
                 if rex.search(e['name']):

@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "lazo"
+version = "1.6.2"
+description = "lazo"
+authors = ["sax <s.apostolico@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/saxix/lazo"
+repository = "https://github.com/saxix/lazo"
+keywords = ["docker", "rancher"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+]
+
+[tool.poetry.scripts]
+lazo = 'lazo.__cli__:cli'
+
+[tool.poetry.dependencies]
+click = "*"
+colorama = "*"
+requests = "*"
+websocket-client = "*"
+pygments = "*"
+python = ">=3.5"
+
+[tool.poetry.dev-dependencies]
+bumpversion = "^0.5.3"
+pytest = "*"
+pytest-coverage = "*"
+isort = "*"
+flake8 = "*"
+tox = "*"
+charset-normalizer = "2.0.3"
+#chardet = "*"
+
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
