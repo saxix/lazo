@@ -5,6 +5,7 @@ dist
 !tests/.coveragerc
 !.bumpversion.cfg
 !.flake8
+!.github
 !.isort.cfg
 !.travis.yml
 Pipfile
