@@ -25,4 +25,4 @@ jobs:
         run: python -m pip install --upgrade tox
 
       - name: Test with tox
-        run: tox -e "py${PYTHON_VERSION//.}
+        run: tox -e "py${PYTHON_VERSION//.}"
