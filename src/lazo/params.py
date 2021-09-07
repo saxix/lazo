@@ -9,11 +9,12 @@ from .types import Auth, DebugMode, IChoice, Project, StdinAuth, Url, Verbosity
 
 
 class OOption(Option):
-    def __init__(self, param_decls=None, show_default=True, prompt=False, confirmation_prompt=False, hide_input=False,
-                 is_flag=None, flag_value=None, multiple=False, count=False, allow_from_autoenv=True, type=None,
-                 help=None, hidden=False, show_choices=True, show_envvar=True, **attrs):
-        super().__init__(param_decls, show_default, prompt, confirmation_prompt, hide_input, is_flag, flag_value,
-                         multiple, count, allow_from_autoenv, type, help, hidden, show_choices, show_envvar, **attrs)
+    pass
+    # def __init__(self, param_decls=None, show_default=True, prompt=False, confirmation_prompt=False, hide_input=False,
+    #              is_flag=None, flag_value=None, multiple=False, count=False, allow_from_autoenv=True, type=None,
+    #              help=None, hidden=False, show_choices=True, show_envvar=True, **attrs):
+    #     super().__init__(param_decls, show_default, prompt, confirmation_prompt, hide_input, is_flag, flag_value,
+    #                      multiple, count, allow_from_autoenv, type, help, hidden, show_choices, show_envvar, **attrs)
 
 
 all_envs = {}
@@ -114,7 +115,7 @@ PROJECT = make_option('-p',
 _workload_options = [CLUSTER,
                      PROJECT,
                      make_option('--pull', 'pull_policy',
-                                 type=IChoice(['IfNotPresent', 'Always', 'Never'], False),
+                                 type=IChoice(['IfNotPresent', 'Always', 'Never']),
                                  default='Always',
                                  help='Rancher ImagePullPolicy'),
                      make_option('--name',
