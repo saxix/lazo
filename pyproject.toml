@@ -19,7 +19,7 @@ classifiers = [
 lazo = 'lazo.__cli__:cli'
 
 [tool.poetry.dependencies]
-click = "*"
+click = "^6"
 colorama = "*"
 requests = "*"
 websocket-client = "*"
