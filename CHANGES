@@ -1,3 +1,7 @@
+1.7
+---
+* add -e/--env option to rancher upgrade
+
 1.6
 ---
 * fixes package
