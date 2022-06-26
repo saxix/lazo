@@ -132,10 +132,11 @@ def containers(ctx, cluster, project):
 @make_option('--workload', '-w', 'workloads', type=Workload, metavar='WORKLOAD', required=True, multiple=True)
 @make_option('--image', '-i', type=Image, metavar='IMAGE', required=True, )
 @make_option('--check/--no-check', is_flag=True, default=True)
+@make_option("--env", "-e", "variables", type=(str, str), multiple=True)
 @click.pass_context
 @handle_lazo_error
 def upgrade(ctx, cluster, project, workloads: [RancherWorkload], image: DockerImage, check,
-            repository, username, password, **kwargs):
+            repository, username, password, variables, **kwargs):
     client = ctx.obj['client']
     if check:
         if not repository:
@@ -152,7 +153,7 @@ def upgrade(ctx, cluster, project, workloads: [RancherWorkload], image: DockerIm
     for workload in workloads:
         echo(f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}' to '{image.id}'")
 
-        client.upgrade(workload, image)
+        client.upgrade(workload, image, variables)
         info = client.get_workload(workload)
         if 'containers' in info:
             for e in info['containers']:

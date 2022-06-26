@@ -201,17 +201,20 @@ class RancherClient(HttpClient):
         response = self.get(f'/projects/{self.cluster}:{self.project}/workloads/{name}')
         return response
 
-    def upgrade(self, workload, image):
+    def upgrade(self, workload, image, env=None):
         url = f'/project/{self.cluster}:{self.project}/workloads/{workload.id}'
         response = self.get(url)
         if not response:
             return
         json = response.copy()
         found = set()
+        environment = dict(env) or {}
         if 'containers' in response:
             for pod in json['containers']:
                 found.add(pod['image'])
                 pod['image'] = image.id
+                pod['environment'] = dict(pod['environment'], **environment)
+
         return self.put(url, data=json)
 
     def _get_cluster_id_by_name(self, name):
