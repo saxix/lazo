@@ -213,7 +213,11 @@ class RancherClient(HttpClient):
             for pod in json['containers']:
                 found.add(pod['image'])
                 pod['image'] = image.id
-                pod['environment'] = dict(pod['environment'], **environment)
+                if 'environment' in pod:
+                    pod['environment'] = dict(pod['environment'], **environment)
+                else:
+                    pod['environment'] = dict(**environment)
+
 
         return self.put(url, data=json)
 
