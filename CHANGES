@@ -2,7 +2,7 @@
 ---
 * fixes bug that prevent upgrading workload with empty environment
 * removed `docker` sub command
-
+* Official support Rancher >= 2.7
 
 1.7
 ---
