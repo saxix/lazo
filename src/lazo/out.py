@@ -4,8 +4,9 @@ from functools import partial
 import click
 
 
-def secho(*args, fg='white'):
-    click.secho(" ".join(map(str, args)), fg=fg)
+def secho(*args, fg='white', indent=0):
+    prefix = " " * indent
+    click.secho(prefix + " ".join(map(str, args)), fg=fg)
 
 
 def fail(*args):

@@ -21,6 +21,11 @@ all_envs = {}
 
 
 def make_option(*param_decls, **attrs):
+    global all_envs
+    if 'envvar' in attrs:
+        e = attrs['envvar']
+        all_envs[e] = None
+    # print("src/lazo/params.py: 25", 11111, attrs.get('envvar'))
     def decorator(f):
         # Issue 926, copy attrs, so pre-defined options can re-use the same cls=
         option_attrs = attrs.copy()
@@ -60,7 +65,7 @@ _global_options = [make_option('-v', '--verbosity',
 
 _rancher_options = [make_option('-b',
                                 '--base-url',
-                                required=True,
+                                required=False,
                                 type=Url,
                                 envvar='RANCHER_BASE_URL',
                                 cls=OOption,
@@ -121,27 +126,27 @@ _workload_options = [CLUSTER,
                      make_option('--name',
                                  help='Workload new name'),
                      ]
-
-_docker_options = [make_option('-r',
-                               '--repository',
-                               default='https://hub.docker.com/v2',
-                               envvar='DOCKER_REPOSITORY',
-                               metavar='URL',
-                               cls=OOption,
-                               help='Docker repository'),
-                   make_option('-u', '--username',
-                               help='username'),
-                   make_option('-p', '--password',
-                               help='password'),
-                   make_option('--check-image/--no-check-image',
-                               is_flag=True,
-                               default=True,
-                               help='Do not check Docker repository'),
-                   make_option('--stdin',
-                               type=StdinAuth,
-                               is_flag=True,
-                               help='Read credentials from stdin'),
-                   ]
+#
+# _docker_options = [make_option('-r',
+#                                '--repository',
+#                                default='https://hub.docker.com/v2',
+#                                envvar='DOCKER_REPOSITORY',
+#                                metavar='URL',
+#                                cls=OOption,
+#                                help='Docker repository'),
+#                    make_option('-u', '--username',
+#                                help='username'),
+#                    make_option('-p', '--password',
+#                                help='password'),
+#                    make_option('--check-image/--no-check-image',
+#                                is_flag=True,
+#                                default=True,
+#                                help='Do not check Docker repository'),
+#                    make_option('--stdin',
+#                                type=StdinAuth,
+#                                is_flag=True,
+#                                help='Read credentials from stdin'),
+#                    ]
 
 
 def options(*opts):

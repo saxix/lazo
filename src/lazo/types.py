@@ -16,14 +16,15 @@ class ExParamType(click.ParamType):
 
 
 class UrlParamType(ExParamType):
-    def convert(self, value, param, ctx):
+    def convert(self, value:str, param, ctx):
         try:
+            if not value.strip():
+                raise ExBadParameter("Url should be empty")
             o = urlparse(value)
-            assert not o.path.endswith('/')
-        except AssertionError:
-            self.fail("Url should not ends with '/'")
+            if o.path.endswith('/'):
+                raise ExBadParameter("Url should not ends with '/'")
         except Exception:
-            self.fail("Invalid url. Should be something like 'https://rancher.example.com:9000/v3/'")
+            raise ExBadParameter("Invalid url. Should be something like 'https://rancher.example.com:9000/v3/'")
 
         return value
 

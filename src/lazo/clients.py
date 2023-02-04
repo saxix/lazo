@@ -67,7 +67,7 @@ class HttpClient:
             url = f"{self.base_url}{url}"
         try:
             if self.debug:
-                print(11111, f"{cmd} {url}")
+                print(f"DEBUG: - {cmd} {url}")
             response = request(cmd, url, auth=self.auth, verify=self.verify, **kwargs)
         except SSLError:
             raise ServerSSLError(url)
