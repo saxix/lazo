@@ -221,15 +221,20 @@ class RancherClient(HttpClient):
             return
         json = response.copy()
         found = set()
-        environment = dict(env) or {}
-        if "containers" in response:
-            for pod in json["containers"]:
-                found.add(pod["image"])
-                pod["image"] = image.id
-                if "environment" in pod:
-                    pod["environment"] = dict(pod["environment"], **environment)
-                else:
-                    pod["environment"] = dict(**environment)
+        if env:
+            environment = [{
+                "name": k,
+                "type": "/v3/project/schemas/envVar",
+                "value": v
+            } for k, v in dict(env).items()]
+            if 'containers' in response:
+                for pod in json['containers']:
+                    found.add(pod['image'])
+                    pod['image'] = image.id
+                    if 'env' in pod:
+                        pod['env'] = pod['env'] + environment
+                    else:
+                        pod['env'] = environment
 
         return self.put(url, data=json)
 

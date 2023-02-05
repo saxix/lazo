@@ -1,3 +1,8 @@
+2.1
+---
+* fixes upgrade command
+
+
 2.0
 ---
 * fixes bug that prevent upgrading workload with empty environment
