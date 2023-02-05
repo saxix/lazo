@@ -5,7 +5,6 @@ from pygments import highlight
 from pygments.formatters.terminal import TerminalFormatter
 from pygments.lexers.data import JsonLexer
 
-
 # def sizeof(num, suffix="B"):
 #     for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
 #         if abs(num) < 1024.0:

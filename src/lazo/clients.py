@@ -6,7 +6,6 @@ from functools import wraps
 from json import JSONDecodeError
 from urllib.parse import urlparse
 
-import websocket
 from click import UsageError
 from requests import request
 from requests.exceptions import SSLError
@@ -15,12 +14,14 @@ from lazo.objects import RancherPod
 from lazo.types import RancherWorkload
 
 from .exceptions import (
+    EmptyResponse,
     HttpError,
     InvalidCredentials,
     InvalidName,
+    LazoError,
     ObjectNotFound,
     ServerConnectionError,
-    ServerSSLError, EmptyResponse, LazoError,
+    ServerSSLError,
 )
 from .out import echo, error, fail
 from .utils import jprint
@@ -75,7 +76,7 @@ class HttpClient:
             if self.debug:
                 print(f"DEBUG: - {cmd} {url}")
             response = request(cmd, url, auth=self.auth, verify=self.verify, **kwargs)
-            if response.content == b'null\n':
+            if response.content == b"null\n":
                 raise EmptyResponse(url)
         except SSLError:
             raise ServerSSLError(url)
@@ -222,19 +223,18 @@ class RancherClient(HttpClient):
         json = response.copy()
         found = set()
         if env:
-            environment = [{
-                "name": k,
-                "type": "/v3/project/schemas/envVar",
-                "value": v
-            } for k, v in dict(env).items()]
-            if 'containers' in response:
-                for pod in json['containers']:
-                    found.add(pod['image'])
-                    pod['image'] = image.id
-                    if 'env' in pod:
-                        pod['env'] = pod['env'] + environment
+            environment = [
+                {"name": k, "type": "/v3/project/schemas/envVar", "value": v}
+                for k, v in dict(env).items()
+            ]
+            if "containers" in response:
+                for pod in json["containers"]:
+                    found.add(pod["image"])
+                    pod["image"] = image.id
+                    if "env" in pod:
+                        pod["env"] = pod["env"] + environment
                     else:
-                        pod['env'] = environment
+                        pod["env"] = environment
 
         return self.put(url, data=json)
 
