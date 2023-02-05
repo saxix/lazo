@@ -1,3 +1,4 @@
+import _thread
 import re
 import ssl
 import time
@@ -5,7 +6,6 @@ from functools import wraps
 from json import JSONDecodeError
 from urllib.parse import urlparse
 
-import _thread
 import websocket
 from click import UsageError
 from requests import request
@@ -14,8 +14,14 @@ from requests.exceptions import SSLError
 from lazo.objects import RancherPod
 from lazo.types import RancherWorkload
 
-from .exceptions import (HttpError, InvalidCredentials, InvalidName,
-                         ObjectNotFound, ServerConnectionError, ServerSSLError, )
+from .exceptions import (
+    HttpError,
+    InvalidCredentials,
+    InvalidName,
+    ObjectNotFound,
+    ServerConnectionError,
+    ServerSSLError, EmptyResponse, LazoError,
+)
 from .out import echo, error, fail
 from .utils import jprint
 
@@ -46,7 +52,7 @@ def on_open(ws):
 class HttpClient:
     def __init__(self, base_url, *, verify=True, debug=True, auth=None, **kwargs):
         o = urlparse(base_url)
-        self.scheme = o.scheme or 'http'
+        self.scheme = o.scheme or "http"
         self.port = o.port or {"http": 80, "https": 443}[self.scheme]
         self.scheme = o.scheme
         self.host = o.hostname
@@ -59,18 +65,22 @@ class HttpClient:
         self.auth = auth
 
     def ping(self) -> bool:
-        self.get('/')
+        self.get("/")
         return self.history[-1].status_code == 200
 
     def _r(self, cmd, url, *, raw=False, ignore_error=False, **kwargs):
-        if not (url.startswith('http') or url.startswith('wss')):
+        if not (url.startswith("http") or url.startswith("wss")):
             url = f"{self.base_url}{url}"
         try:
             if self.debug:
                 print(f"DEBUG: - {cmd} {url}")
             response = request(cmd, url, auth=self.auth, verify=self.verify, **kwargs)
+            if response.content == b'null\n':
+                raise EmptyResponse(url)
         except SSLError:
             raise ServerSSLError(url)
+        except LazoError as e:
+            raise
         except Exception as e:
             raise ServerConnectionError(url, e)
         self.history.append(response)
@@ -89,48 +99,51 @@ class HttpClient:
             raise HttpError(url, response)
 
     def post(self, url, **kwargs):
-        return self._r('post', url, **kwargs)
+        return self._r("post", url, **kwargs)
 
     def get(self, url, **kwargs):
-        return self._r('get', url, **kwargs)
+        return self._r("get", url, **kwargs)
 
     def delete(self, url, **kwargs):
-        return self._r('delete', url, **kwargs)
+        return self._r("delete", url, **kwargs)
 
     def put(self, url, *, data, **kwargs):
-        return self._r('put', url, json=data, **kwargs)
+        return self._r("put", url, json=data, **kwargs)
 
     def ws(self, where):
-        scheme = 'ws' if self.scheme == 'http' else 'wss'
-        base = f'{scheme}://{self.host}:{self.port}'
+        scheme = "ws" if self.scheme == "http" else "wss"
+        base = f"{scheme}://{self.host}:{self.port}"
         url = f"{base}{where}"
         if self.debug:
             echo(f"WS {url}")
         from base64 import b64encode
-        userAndPass = b64encode(f"{self.auth.username}:{self.auth.password}".encode('utf8')).decode("ascii")
-        headers = {'Authorization': 'Basic %s' % userAndPass}
-        ws = websocket.create_connection(url,
-                                         sslopt={"cert_reqs": ssl.CERT_NONE},
-                                         header=headers)
+
+        userAndPass = b64encode(
+            f"{self.auth.username}:{self.auth.password}".encode("utf8")
+        ).decode("ascii")
+        headers = {"Authorization": "Basic %s" % userAndPass}
+        ws = websocket.create_connection(
+            url, sslopt={"cert_reqs": ssl.CERT_NONE}, header=headers
+        )
         assert ws.connected
         data = []
         while ws.connected:
             rec = ws.recv()
-            if rec != b'\x01':
+            if rec != b"\x01":
                 if isinstance(rec, str):
                     data.append(rec[1:])
                 else:
-                    data.append(rec[1:].decode('utf8'))
+                    data.append(rec[1:].decode("utf8"))
 
         if not data:
-            raise Exception('No response')
+            raise Exception("No response")
 
         return "".join(data)
 
 
 class RancherClient(HttpClient):
     def __init__(self, base_url, **kwargs):
-        self.use_names = kwargs.pop('use_names', False)
+        self.use_names = kwargs.pop("use_names", False)
         super().__init__(base_url, **kwargs)
         self._cluster = None
         self._project = None
@@ -167,12 +180,12 @@ class RancherClient(HttpClient):
 
     # pods
     def list_pods(self):
-        url = f'/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name'
+        url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
         res = self.get(url)
-        return res['data']
+        return res["data"]
 
     def get_pod(self, workload: RancherWorkload, elem=1):
-        url = f'/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name'
+        url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
         res = self.get(url)
         for w in res["data"]:
             if w["workloadId"] == workload.id:
@@ -181,70 +194,68 @@ class RancherClient(HttpClient):
 
     # containers
     def list_containers(self):
-        url = f'/project/{self.cluster}:{self.project}/containers?limit=-1&sort=name'
+        url = f"/project/{self.cluster}:{self.project}/containers?limit=-1&sort=name"
         res = self.get(url)
-        return res['data']
+        return res["data"]
 
     def list_clusters(self):
-        res = self.get('/clusters')
-        return [(e['name'], e['id']) for e in res['data']]
+        res = self.get("/clusters")
+        return [(e["name"], e["id"]) for e in res["data"]]
 
     def list_projects(self):
-        response = self.get(f'/clusters/{self.cluster}/projects')
-        return [(e['name'], e['id']) for e in response['data']]
+        response = self.get(f"/clusters/{self.cluster}/projects")
+        return [(e["name"], e["id"]) for e in response["data"]]
 
     def list_workloads(self):
-        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads')
-        return [(e['name'], e['id']) for e in response['data']]
+        response = self.get(f"/projects/{self.cluster}:{self.project}/workloads")
+        return [(e["name"], e["id"]) for e in response["data"]]
 
     def get_workload(self, name):
-        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads/{name}')
+        response = self.get(f"/projects/{self.cluster}:{self.project}/workloads/{name}")
         return response
 
     def upgrade(self, workload, image, env=None):
-        url = f'/project/{self.cluster}:{self.project}/workloads/{workload.id}'
+        url = f"/project/{self.cluster}:{self.project}/workloads/{workload.id}"
         response = self.get(url)
         if not response:
             return
         json = response.copy()
         found = set()
         environment = dict(env) or {}
-        if 'containers' in response:
-            for pod in json['containers']:
-                found.add(pod['image'])
-                pod['image'] = image.id
-                if 'environment' in pod:
-                    pod['environment'] = dict(pod['environment'], **environment)
+        if "containers" in response:
+            for pod in json["containers"]:
+                found.add(pod["image"])
+                pod["image"] = image.id
+                if "environment" in pod:
+                    pod["environment"] = dict(pod["environment"], **environment)
                 else:
-                    pod['environment'] = dict(**environment)
-
+                    pod["environment"] = dict(**environment)
 
         return self.put(url, data=json)
 
     def _get_cluster_id_by_name(self, name):
-        res = self.get('/clusters')
-        for entry in res['data']:
-            if entry['name'] == name:
-                return entry['id']
+        res = self.get("/clusters")
+        for entry in res["data"]:
+            if entry["name"] == name:
+                return entry["id"]
         raise InvalidName(f"Invalid cluster name '{name}'")
 
     def _get_project_id_by_name(self, name):
-        res = self.get(f'/clusters/{self.cluster}/projects')
-        for entry in res['data']:
-            if entry['name'] == name:
-                return entry['id'].split(":")[1]
+        res = self.get(f"/clusters/{self.cluster}/projects")
+        for entry in res["data"]:
+            if entry["name"] == name:
+                return entry["id"].split(":")[1]
         raise InvalidName(f"Invalid project name '{name}'")
 
     def _get_workload_id_by_name(self, project, name):
-        response = self.get(f'/projects/{self.cluster}:{self.project}/workloads')
-        for workload in response['data']:
-            if workload['name'] == name[-1]:
-                return workload['id'].split(":")
+        response = self.get(f"/projects/{self.cluster}:{self.project}/workloads")
+        for workload in response["data"]:
+            if workload["name"] == name[-1]:
+                return workload["id"].split(":")
         raise InvalidName(f"Invalid workload name '{':'.join(name)}'")
 
 
 class DockerClient(HttpClient):
-
     def __init__(self, base_url, *, username=None, password=None, **kwargs) -> None:
         super().__init__(base_url, **kwargs)
         self.username = username
@@ -255,37 +266,39 @@ class DockerClient(HttpClient):
 
     def exists(self, image):
         try:
-            self.get(f'/repositories/{image.image}/tags/{image.tag}/')
+            self.get(f"/repositories/{image.image}/tags/{image.tag}/")
             return True
         except HttpError:
             return False
 
     def login(self):
-        url = '/users/login/'
-        self.post(url, json={"username": self.username,
-                             "password": self.password},
-                  ignore_error=True)
+        url = "/users/login/"
+        self.post(
+            url,
+            json={"username": self.username, "password": self.password},
+            ignore_error=True,
+        )
         response = self.history[-1]
         if response.status_code == 400:
             raise InvalidCredentials(url, response)
-        self.token = response.json()['token']
+        self.token = response.json()["token"]
         return self.token
 
-    def get_tags(self, image, filter='.*', max_pages=None):
+    def get_tags(self, image, filter=".*", max_pages=None):
         ret = []
-        url = f'/repositories/{image.image}/tags/'
+        url = f"/repositories/{image.image}/tags/"
         rex = re.compile(filter)
         page = 1
         while url:
             # TODO: remove me
             print(111, "clients.py:272", url)
             response = self.get(url)
-            for e in response['results']:
-                if rex.search(e['name']):
+            for e in response["results"]:
+                if rex.search(e["name"]):
                     yield e
             if max_pages and page > max_pages:
                 break
-            url = response['next']
+            url = response["next"]
         return sorted(ret)
 
 
@@ -302,6 +315,8 @@ def handle_lazo_error(func):
             data = e.response.json()
             error(e.url)
             jprint(data)
+        except LazoError as e:
+            error(str(e))
         except ServerConnectionError as e:
             error(str(e))
             error(str(e.reason))

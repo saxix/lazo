@@ -8,8 +8,15 @@ from .__cli__ import cli
 from .clients import RancherClient, handle_lazo_error
 from .objects import DockerImage, RancherWorkload
 from .out import echo, error, success
-from .params import CLUSTER, PROJECT, _global_options, make_option, options
-from .types import Image, Workload
+from .params import (
+    CLUSTER,
+    PROJECT,
+    OOption,
+    _global_options,
+    make_option,
+    options,
+)
+from .types import Image, Project, Workload
 from .utils import jprint, prepare_command
 
 # @cli.group()
@@ -55,7 +62,25 @@ def login(ctx, **kwargs):
 
 @cli.command()
 @options(_global_options)
-@options([CLUSTER, PROJECT])
+@make_option(
+    "-c",
+    "--cluster",
+    required=False,
+    # envvar="RANCHER_CLUSTER",
+    help="Rancher cluster key.",
+    cls=OOption,
+    metavar="TEXT",
+)
+@make_option(
+    "-p",
+    "--project",
+    required=False,
+    type=Project,
+    envvar="RANCHER_PROJECT",
+    cls=OOption,
+    help="Rancher project key",
+    metavar="PROJECT",
+)
 @click.option(
     "-w", "--workload", type=Workload, help="Rancher workload.", metavar="TEXT"
 )
@@ -65,7 +90,7 @@ def info(ctx, cluster, project, workload: RancherWorkload, verbosity, **kwargs):
     client = ctx.obj["client"]
 
     client.cluster = cluster
-    if project[0] is None:
+    if project and project[0] is None:
         project[0] = cluster
 
     client.project = project
@@ -94,11 +119,11 @@ def info(ctx, cluster, project, workload: RancherWorkload, verbosity, **kwargs):
         response = client.get(f"/clusters/{client.cluster}/projects")
         echo(f"Projects on cluster: {client.cluster}")
         for project in response["data"]:
-            echo(f"\t{project['name']:>15}    {project['id']:<40}")
+            echo(f"{project['name']:<15}    {project['id']:<40}")
     else:
         echo("Clusters:")
         for entry in client.list_clusters():
-            echo(f"\t{entry[0]:>20}   {entry[1]:<40}")
+            echo(f"- {entry[0]:<20}   {entry[1]:<40}")
 
 
 @cli.command()
@@ -211,10 +236,6 @@ def set(
     cluster,
     project,
     workloads: [RancherWorkload],
-    repository,
-    username,
-    password,
-    variables,
     **kwargs,
 ):
     client: RancherClient = ctx.obj["client"]
@@ -223,19 +244,19 @@ def set(
     # namespace, workload_name = workload
 
     for workload in workloads:
-        echo(
-            f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}' to '{image.id}'"
-        )
-
-        client.upgrade(workload, image, variables)
+        # echo(
+        #     f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}''"
+        # )
         info = client.get_workload(workload)
-        if "containers" in info:
-            for e in info["containers"]:
-                echo("Image:", e["image"])
-        if "publicEndpoints" in info and info["publicEndpoints"]:
-            for ep in info["publicEndpoints"]:
-                echo("Ingress:", ep["ingressId"])
-                echo("Hostname:", ep.get("hostname", ""))
+        print("src/lazo/rancher.py: 252", info)
+        if info:
+            if "containers" in info:
+                for e in info["containers"]:
+                    echo("Image:", e["image"])
+            if "publicEndpoints" in info and info["publicEndpoints"]:
+                for ep in info["publicEndpoints"]:
+                    echo("Ingress:", ep["ingressId"])
+                    echo("Hostname:", ep.get("hostname", ""))
 
 
 @cli.command()

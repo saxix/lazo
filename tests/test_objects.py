@@ -1,7 +1,6 @@
 import pytest
 
 from lazo.objects import RancherWorkload, RancherPod, DockerImage
-from lazo.utils import sizeof, import_by_name
 
 
 def test_rancherworkload():

@@ -22,93 +22,107 @@ all_envs = {}
 
 def make_option(*param_decls, **attrs):
     global all_envs
-    if 'envvar' in attrs:
-        e = attrs['envvar']
+    if "envvar" in attrs:
+        e = attrs["envvar"]
         all_envs[e] = None
+
     # print("src/lazo/params.py: 25", 11111, attrs.get('envvar'))
     def decorator(f):
         # Issue 926, copy attrs, so pre-defined options can re-use the same cls=
         option_attrs = attrs.copy()
 
-        if 'help' in option_attrs:
-            option_attrs['help'] = inspect.cleandoc(option_attrs['help'])
-        OptionClass = option_attrs.pop('cls', Option)
+        if "help" in option_attrs:
+            option_attrs["help"] = inspect.cleandoc(option_attrs["help"])
+        OptionClass = option_attrs.pop("cls", Option)
         opt = OptionClass(param_decls, **option_attrs)
         _param_memo(f, opt)
-        if 'envvar' in attrs:
-            e = attrs['envvar']
+        if "envvar" in attrs:
+            e = attrs["envvar"]
             all_envs[e] = opt
         return f
 
     return decorator
 
 
-_global_options = [make_option('-v', '--verbosity',
-                               default=1,
-                               type=Verbosity,
-                               help="verbosity level",
-                               count=True),
-                   make_option('-q', '--quiet',
-                               help="no output",
-                               default=0, is_flag=True, type=Verbosity),
-                   make_option('-d',
-                               '--dry-run',
-                               is_flag=True,
-                               help='dry-run mode'),
-                   make_option('--debug',
-                               default=False,
-                               is_flag=True,
-                               flag_value=True,
-                               type=DebugMode,
-                               help='debug mode'),
-                   ]
+_global_options = [
+    make_option(
+        "-v",
+        "--verbosity",
+        default=1,
+        type=Verbosity,
+        help="verbosity level",
+        count=True,
+    ),
+    make_option(
+        "-q", "--quiet", help="no output", default=0, is_flag=True, type=Verbosity
+    ),
+    make_option("-d", "--dry-run", is_flag=True, help="dry-run mode"),
+    make_option(
+        "--debug",
+        default=False,
+        is_flag=True,
+        flag_value=True,
+        type=DebugMode,
+        help="debug mode",
+    ),
+]
 
-_rancher_options = [make_option('-b',
-                                '--base-url',
-                                required=False,
-                                type=Url,
-                                envvar='RANCHER_BASE_URL',
-                                cls=OOption,
-                                help='Rancher base url.',
-                                metavar='URL'),
-
-                    make_option('--auth',
-                                envvar='RANCHER_AUTH',
-                                help='Rancher API key:secret',
-                                type=Auth,
-                                cls=OOption,
-                                default=None,
-                                metavar='TEXT'),
-                    make_option('--stdin',
-                                is_flag=True,
-                                help='Read credentials from stdin'),
-                    make_option('-i',
-                                '--insecure',
-                                is_flag=True,
-                                envvar='RANCHER_INSECURE',
-                                cls=OOption,
-                                help='Ignore verifying the SSL certificate'),
-                    make_option('-n',
-                                '--use-names',
-                                envvar='RANCHER_USE_NAMES',
-                                is_flag=True,
-                                help='Use target names instead of Rancher Id(s)'),
-                    ]
-CLUSTER = make_option('-c',
-                      '--cluster',
-                      required=True,
-                      envvar='RANCHER_CLUSTER',
-                      help='Rancher cluster key.',
-                      cls=OOption,
-                      metavar='TEXT')
-PROJECT = make_option('-p',
-                      '--project',
-                      required=True,
-                      type=Project,
-                      envvar='RANCHER_PROJECT',
-                      cls=OOption,
-                      help='Rancher project key',
-                      metavar='PROJECT')
+_rancher_options = [
+    make_option(
+        "-b",
+        "--base-url",
+        required=False,
+        type=Url,
+        envvar="RANCHER_BASE_URL",
+        cls=OOption,
+        help="Rancher base url.",
+        metavar="URL",
+    ),
+    make_option(
+        "--auth",
+        envvar="RANCHER_AUTH",
+        help="Rancher API key:secret",
+        type=Auth,
+        cls=OOption,
+        default=None,
+        metavar="TEXT",
+    ),
+    make_option("--stdin", is_flag=True, help="Read credentials from stdin"),
+    make_option(
+        "-i",
+        "--insecure",
+        is_flag=True,
+        envvar="RANCHER_INSECURE",
+        cls=OOption,
+        help="Ignore verifying the SSL certificate",
+    ),
+    make_option(
+        "-n",
+        "--use-names",
+        envvar="RANCHER_USE_NAMES",
+        is_flag=True,
+        help="Use target names instead of Rancher Id(s)",
+    ),
+]
+CLUSTER = make_option(
+    "-c",
+    "--cluster",
+    required=True,
+    envvar="RANCHER_CLUSTER",
+    help="Rancher cluster key.",
+    cls=OOption,
+    metavar="TEXT",
+)
+PROJECT = make_option(
+    "-p",
+    "--project",
+    required=True,
+    type=Project,
+    envvar="RANCHER_PROJECT",
+    cls=OOption,
+    help="Rancher project key",
+    metavar="PROJECT",
+)
 # WORKLOAD = make_option('-w',
 #                        '--workload',
 #                        type=Workload,
@@ -117,15 +131,18 @@ PROJECT = make_option('-p',
 #                        help='Rancher workload.',
 #                        metavar='TEXT')
 
-_workload_options = [CLUSTER,
-                     PROJECT,
-                     make_option('--pull', 'pull_policy',
-                                 type=IChoice(['IfNotPresent', 'Always', 'Never']),
-                                 default='Always',
-                                 help='Rancher ImagePullPolicy'),
-                     make_option('--name',
-                                 help='Workload new name'),
-                     ]
+_workload_options = [
+    CLUSTER,
+    PROJECT,
+    make_option(
+        "--pull",
+        "pull_policy",
+        type=IChoice(["IfNotPresent", "Always", "Never"]),
+        default="Always",
+        help="Rancher ImagePullPolicy",
+    ),
+    make_option("--name", help="Workload new name"),
+]
 #
 # _docker_options = [make_option('-r',
 #                                '--repository',
@@ -157,16 +174,15 @@ def options(*opts):
 
     return decorator
 
-
-class Config(object):
-
-    def __init__(self, root):
-        self.root = root
-        self.client = None
-        self.storage = {}
-
-    def __repr__(self):
-        return '<Config>'
-
-
-pass_config = click.make_pass_decorator(Config)
+#
+# class Config(object):
+#     def __init__(self, root):
+#         self.root = root
+#         self.client = None
+#         self.storage = {}
+#
+#     def __repr__(self):
+#         return "<Config>"
+#
+#
+# pass_config = click.make_pass_decorator(Config)

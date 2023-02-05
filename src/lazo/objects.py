@@ -1,12 +1,10 @@
-
-
 class RancherWorkload:
     def __init__(self, value):
-        parts = value.split(':')
+        parts = value.split(":")
         if len(parts) == 3:
             self.type, self.namespace, self.name = parts
         elif len(parts) == 2:
-            self.type = 'deployment'
+            self.type = "deployment"
             self.namespace, self.name = parts
         else:
             raise Exception("Invalid workload")
@@ -28,7 +26,7 @@ class RancherPod:
 
 class DockerImage:
     def __init__(self, value, partial=False):
-        parts = value.split(':')
+        parts = value.split(":")
         self.repo = "hub.docker.com"
         self.tag = "latest"
         if len(parts) == 2:
@@ -38,7 +36,7 @@ class DockerImage:
         else:
             raise ValueError(value)
 
-        parts = _image.split('/')
+        parts = _image.split("/")
         if len(parts) == 3:
             self.repo, self.account, self.image = parts
         elif len(parts) == 2:

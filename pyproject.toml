@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lazo"
-version = "1.7"
+version = "2.0"
 description = "lazo"
 authors = ["sax <s.apostolico@gmail.com>"]
 readme = "README.md"
@@ -22,7 +22,7 @@ lazo = 'lazo.__cli__:cli'
 click = "*"
 colorama = "*"
 requests = "*"
-websocket-client = "*"
+#websocket-client = "*"
 pygments = "*"
 python = ">=3.8"
 
@@ -32,9 +32,10 @@ bump2version = {version = "*", optional = true}
 pytest = "*"
 pytest-coverage = "*"
 isort = "*"
-flake8 = "*"
+flake8 = "^5"
 tox = "*"
-charset-normalizer = "2.0.3"
+pycodestyle = "*"
+#charset-normalizer = "2.0.3"
 responses = "*"
 pdbpp = "*"
 
