@@ -5,7 +5,7 @@ import time
 from functools import wraps
 from json import JSONDecodeError
 from urllib.parse import urlparse
-
+import websocket
 from click import UsageError
 from requests import request
 from requests.exceptions import SSLError
@@ -66,8 +66,10 @@ class HttpClient:
         self.auth = auth
 
     def ping(self) -> bool:
-        self.get("/")
-        return self.history[-1].status_code == 200
+        ret = self.get("/")
+        return ret["apiVersion"]["version"] == "v3"
+
+        # return self.history[-1].status_code == 200
 
     def _r(self, cmd, url, *, raw=False, ignore_error=False, **kwargs):
         if not (url.startswith("http") or url.startswith("wss")):
@@ -143,11 +145,11 @@ class HttpClient:
 
 
 class RancherClient(HttpClient):
-    def __init__(self, base_url, **kwargs):
+    def __init__(self, base_url, cluster=None, project=None, **kwargs):
         self.use_names = kwargs.pop("use_names", False)
         super().__init__(base_url, **kwargs)
-        self._cluster = None
-        self._project = None
+        self._cluster = cluster
+        self._project = project
 
     def __repr__(self):
         return f"<RancherClient {self.base_url}>"
@@ -180,24 +182,18 @@ class RancherClient(HttpClient):
         self._project = name
 
     # pods
-    def list_pods(self):
-        url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
-        res = self.get(url)
-        return res["data"]
-
-    def get_pod(self, workload: RancherWorkload, elem=1):
-        url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
-        res = self.get(url)
-        for w in res["data"]:
-            if w["workloadId"] == workload.id:
-                return RancherPod(w)
-        raise ObjectNotFound(workload.id)
-
-    # containers
-    def list_containers(self):
-        url = f"/project/{self.cluster}:{self.project}/containers?limit=-1&sort=name"
-        res = self.get(url)
-        return res["data"]
+    # def list_pods(self):
+    #     url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
+    #     res = self.get(url)
+    #     return res["data"]
+    #
+    # def get_pod(self, workload: RancherWorkload, elem=1):
+    #     url = f"/project/{self.cluster}:{self.project}/pods?limit=-1&sort=name"
+    #     res = self.get(url)
+    #     for w in res["data"]:
+    #         if w["workloadId"] == workload.id:
+    #             return RancherPod(w)
+    #     raise ObjectNotFound(workload.id)
 
     def list_clusters(self):
         res = self.get("/clusters")
@@ -214,6 +210,36 @@ class RancherClient(HttpClient):
     def get_workload(self, name):
         response = self.get(f"/projects/{self.cluster}:{self.project}/workloads/{name}")
         return response
+
+    def get_env(self, workload):
+        info = self.get_workload(workload)
+        ret = {}
+        if "containers" in info:
+            for pod in info["containers"]:
+                ret[pod["name"]] = {}
+                if "env" in pod:
+                    ret[pod["name"]] = pod["env"]
+        return ret
+
+    def _merge_env(self, current, **updates):
+        for entry in current:
+            if entry["name"] in updates.keys():
+                entry["value"] = updates.pop(entry["name"])
+
+        current.extend([
+            {"name": k, "type": "/v3/project/schemas/envVar", "value": v}
+            for k, v in updates.items()
+        ])
+        return current
+
+    def set_env(self, workload, **kwargs):
+        url = f"/project/{self.cluster}:{self.project}/workloads/{workload.id}"
+        info = self.get_workload(workload)
+        if "containers" in info:
+            for pod in info["containers"]:
+                if "env" in pod:
+                    self._merge_env(pod["env"], **kwargs)
+        return self.put(url, data=info)
 
     def upgrade(self, workload, image, env=None):
         url = f"/project/{self.cluster}:{self.project}/workloads/{workload.id}"
@@ -232,7 +258,7 @@ class RancherClient(HttpClient):
                     found.add(pod["image"])
                     pod["image"] = image.id
                     if "env" in pod:
-                        pod["env"] = pod["env"] + environment
+                        self._merge_env(pod["env"], **env)
                     else:
                         pod["env"] = environment
 
@@ -260,52 +286,50 @@ class RancherClient(HttpClient):
         raise InvalidName(f"Invalid workload name '{':'.join(name)}'")
 
 
-class DockerClient(HttpClient):
-    def __init__(self, base_url, *, username=None, password=None, **kwargs) -> None:
-        super().__init__(base_url, **kwargs)
-        self.username = username
-        self.password = password
-
-    def __repr__(self):
-        return f"<DockerClient {self.base_url}>"
-
-    def exists(self, image):
-        try:
-            self.get(f"/repositories/{image.image}/tags/{image.tag}/")
-            return True
-        except HttpError:
-            return False
-
-    def login(self):
-        url = "/users/login/"
-        self.post(
-            url,
-            json={"username": self.username, "password": self.password},
-            ignore_error=True,
-        )
-        response = self.history[-1]
-        if response.status_code == 400:
-            raise InvalidCredentials(url, response)
-        self.token = response.json()["token"]
-        return self.token
-
-    def get_tags(self, image, filter=".*", max_pages=None):
-        ret = []
-        url = f"/repositories/{image.image}/tags/"
-        rex = re.compile(filter)
-        page = 1
-        while url:
-            # TODO: remove me
-            print(111, "clients.py:272", url)
-            response = self.get(url)
-            for e in response["results"]:
-                if rex.search(e["name"]):
-                    yield e
-            if max_pages and page > max_pages:
-                break
-            url = response["next"]
-        return sorted(ret)
-
+# class DockerClient(HttpClient):
+#     def __init__(self, base_url, *, username=None, password=None, **kwargs) -> None:
+#         super().__init__(base_url, **kwargs)
+#         self.username = username
+#         self.password = password
+#
+#     def __repr__(self):
+#         return f"<DockerClient {self.base_url}>"
+#
+#     def exists(self, image):
+#         try:
+#             self.get(f"/repositories/{image.image}/tags/{image.tag}/")
+#             return True
+#         except HttpError:
+#             return False
+#
+    # def login(self):
+    #     url = "/users/login/"
+    #     self.post(
+    #         url,
+    #         json={"username": self.username, "password": self.password},
+    #         ignore_error=True,
+    #     )
+    #     response = self.history[-1]
+    #     if response.status_code == 400:
+    #         raise InvalidCredentials(url, response)
+    #     self.token = response.json()["token"]
+    #     return self.token
+    #
+    # def get_tags(self, image, filter=".*", max_pages=None):
+    #     ret = []
+    #     url = f"/repositories/{image.image}/tags/"
+    #     rex = re.compile(filter)
+    #     page = 1
+    #     while url:
+    #         response = self.get(url)
+    #         for e in response["results"]:
+    #             if rex.search(e["name"]):
+    #                 yield e
+    #         if max_pages and page > max_pages:
+    #             break
+    #         url = response["next"]
+    #     return sorted(ret)
+#
 
 def handle_lazo_error(func):
     @wraps(func)

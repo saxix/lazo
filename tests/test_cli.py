@@ -27,3 +27,13 @@ def test_info(mocked_responses):
         env={"RANCHER_CLUSTER": "local"},
     )
     assert result.exit_code == 0, result.output
+
+
+def test_upgrade(mocked_responses):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["-b", "https://rancher/v3", "upgrade", "-i", "account/image:tag", "-p", "project", "-w", "namespace:workload"],
+        env={"RANCHER_CLUSTER": "local"},
+    )
+    assert result.exit_code == 0, result.output

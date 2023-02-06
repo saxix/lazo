@@ -42,7 +42,7 @@ class DockerImage:
         elif len(parts) == 2:
             self.account, self.image = parts
         else:
-            raise ValueError(value)
+            raise ValueError(f"Invalid docker image {value}. It must be repository/imagename")
         # self.account = parts[0]
         # self.image= "/".join(parts[1:])
 

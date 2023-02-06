@@ -138,23 +138,6 @@ def pods(ctx, cluster, project):
         echo(f'{w["workloadId"]:<50} {w["id"]}')
 
 
-# @rancher.command()
-# @options([CLUSTER, PROJECT])
-# @click.pass_context
-# def containers(ctx, cluster, project):
-#     client = ctx.obj['client']
-#     client.cluster = cluster
-#     client.project = project
-#     ret = client.list_containers()
-#     for w in ret:
-#         # TODO: remove me
-#         print(111, "rancher.py:120", w)
-#         # echo(f'{w["workloadId"]:<50} {w["id"]}')
-#         # for c in w["containers"]:
-#         #     echo(f'\t{c["id"]}')
-#     # jprint(ret)
-
-
 @cli.command()
 @options(_global_options)
 @options([CLUSTER, PROJECT])
@@ -199,7 +182,6 @@ def upgrade(
     client.cluster = cluster
     client.project = project
     # namespace, workload_name = workload
-
     for workload in workloads:
         echo(
             f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}' to '{image.id}'"
@@ -214,49 +196,6 @@ def upgrade(
             for ep in info["publicEndpoints"]:
                 echo("Ingress:", ep["ingressId"])
                 echo("Hostname:", ep.get("hostname", ""))
-
-
-@cli.command()
-@options(_global_options)
-@options([CLUSTER, PROJECT])
-@make_option(
-    "--workload",
-    "-w",
-    "workloads",
-    type=Workload,
-    metavar="WORKLOAD",
-    required=True,
-    multiple=True,
-)
-@make_option("--env", "-e", "variables", type=(str, str), multiple=True)
-@click.pass_context
-@handle_lazo_error
-def set(
-    ctx,
-    cluster,
-    project,
-    workloads: [RancherWorkload],
-    **kwargs,
-):
-    client: RancherClient = ctx.obj["client"]
-    client.cluster = cluster
-    client.project = project
-    # namespace, workload_name = workload
-
-    for workload in workloads:
-        # echo(
-        #     f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}''"
-        # )
-        info = client.get_workload(workload)
-        print("src/lazo/rancher.py: 252", info)
-        if info:
-            if "containers" in info:
-                for e in info["containers"]:
-                    echo("Image:", e["image"])
-            if "publicEndpoints" in info and info["publicEndpoints"]:
-                for ep in info["publicEndpoints"]:
-                    echo("Ingress:", ep["ingressId"])
-                    echo("Hostname:", ep.get("hostname", ""))
 
 
 @cli.command()
@@ -292,3 +231,89 @@ def shell(ctx, cluster, project, workload: RancherWorkload, command, **kwargs):
         sys.exit(1)
 
     print(ret)
+
+@cli.command()
+@options(_global_options)
+@options([CLUSTER, PROJECT])
+@make_option(
+    "--workload",
+    "-w",
+    "workloads",
+    type=Workload,
+    metavar="WORKLOAD",
+    required=True,
+    multiple=True,
+)
+@make_option("--env", "-e", "variables", type=(str, str), multiple=True)
+@click.pass_context
+@handle_lazo_error
+def env(
+    ctx,
+    cluster,
+    project,
+    workloads: [RancherWorkload],
+    **kwargs,
+):
+    client: RancherClient = ctx.obj["client"]
+    client.cluster = cluster
+    client.project = project
+    # namespace, workload_name = workload
+
+    for workload in workloads:
+        # echo(
+        #     f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}''"
+        # )
+        info = client.get_workload(workload)
+        if info:
+            if "containers" in info:
+                for pod in info["containers"]:
+                    if "env" in pod:
+                        for entry in pod["env"]:
+                            print(entry["name"], entry["value"])
+
+
+@cli.command()
+@options(_global_options)
+@options([CLUSTER, PROJECT])
+@make_option(
+    "--workload",
+    "-w",
+    "workloads",
+    type=Workload,
+    metavar="WORKLOAD",
+    required=True,
+    multiple=True,
+)
+@make_option(
+    "--workload",
+    "-w",
+    "workloads",
+    type=Workload,
+    metavar="WORKLOAD",
+    required=True,
+    multiple=True,
+)
+@make_option("--env", "-e", "variables", type=(str, str), multiple=True)
+@click.pass_context
+@handle_lazo_error
+def set(
+    ctx,
+    cluster,
+    project,
+    workloads: [RancherWorkload],
+    variables,
+    **kwargs,
+):
+    client: RancherClient = ctx.obj["client"]
+    client.cluster = cluster
+    client.project = project
+    # namespace, workload_name = workload
+
+    for workload in workloads:
+        echo(
+            f"Upgrading workload '{workload.id}' on project '{client.cluster}:{client.project}'"
+        )
+
+        info = client.set_env(workload, **dict(variables))
+        # info = client.get_env(workload)
+        jprint(info)

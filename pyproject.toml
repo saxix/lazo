@@ -22,7 +22,7 @@ lazo = 'lazo.__cli__:cli'
 click = "*"
 colorama = "*"
 requests = "*"
-#websocket-client = "*"
+websocket-client = "*"
 pygments = "*"
 python = ">=3.8"
 

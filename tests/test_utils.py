@@ -1,5 +1,8 @@
 import pytest
 
+from lazo.utils import jprint
+
+
 # from lazo.utils import import_by_name
 
 #
@@ -25,3 +28,15 @@ import pytest
 #
 #     with pytest.raises(AttributeError):
 #         import_by_name('lazo.error')
+
+
+def test_jprint_no_colors(capsys):
+    jprint({}, False)
+    captured = capsys.readouterr()
+    assert captured.out == "{}\n"
+
+
+def test_jprint_colors(capsys):
+    jprint({}, True)
+    captured = capsys.readouterr()
+    assert captured.out == "{}\x1b[37m\x1b[39;49;00m\n\n"
