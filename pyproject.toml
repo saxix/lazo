@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lazo"
-version = "2.0.1"
+version = "2.0.2"
 description = "lazo"
 authors = ["sax <s.apostolico@gmail.com>"]
 readme = "README.md"
@@ -35,7 +35,7 @@ isort = "*"
 flake8 = "^5"
 tox = "*"
 pycodestyle = "*"
-#charset-normalizer = "2.0.1.3"
+#charset-normalizer = "2.0.2.3"
 responses = "*"
 pdbpp = "*"
 
