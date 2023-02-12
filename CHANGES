@@ -1,3 +1,8 @@
+2.0.2
+-----
+* updates env arguments handling
+
+
 2.0.1
 -----
 * fixes upgrade command
@@ -8,6 +13,7 @@
 * fixes bug that prevent upgrading workload with empty environment
 * removed `docker` sub command
 * Official support Rancher >= 2.7
+
 
 1.7
 ---
