@@ -258,7 +258,7 @@ class RancherClient(HttpClient):
                     found.add(pod["image"])
                     pod["image"] = image.id
                     if "env" in pod:
-                        self._merge_env(pod["env"], **env)
+                        self._merge_env(pod["env"], **dict(env))
                     else:
                         pod["env"] = environment
 
