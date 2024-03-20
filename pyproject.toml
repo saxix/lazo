@@ -27,7 +27,7 @@ pygments = "*"
 python = ">=3.8"
 
 [tool.poetry.dev-dependencies]
-black = "^23"
+black = "^24"
 bump2version = "*"
 pytest = "*"
 pytest-coverage = "*"
